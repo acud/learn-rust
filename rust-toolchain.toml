@@ -1,6 +1,6 @@
 [toolchain]
 # Can be "stable", "nightly", "beta", or a specific version like "1.80.0"
-channel = "stable"
+channel = "1.99.1"
 
 # Profiles define the core set of tools (minimal, default, or complete)
 profile = "default"

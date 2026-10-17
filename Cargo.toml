@@ -4,3 +4,6 @@ members = ["crates/kvs", "crates/kvs-server"]
 
 [workspace.lints.rust]
 rust_2018_idioms = "warn"
+
+[workspace.lints.clippy]
+pedantic = "warn"
