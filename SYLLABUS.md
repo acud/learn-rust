@@ -8,12 +8,12 @@
 
 ## Progress
 
-**Current step:** 0.1
+**Current step:** 1.1
 
 A box gets ticked only when a review passes (7/10 or better, no must-fix items left). Scores and details live in `REVIEWS.md`.
 
 - **Phase 0**
-  - [ ] 0.1 Skeleton
+  - [x] 0.1 Skeleton
 - **Phase 1: Ownership**
   - [ ] 1.1 Owned BST
   - [ ] 1.2 Remove and Drop
