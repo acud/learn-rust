@@ -1,0 +1,12 @@
+[toolchain]
+# Can be "stable", "nightly", "beta", or a specific version like "1.80.0"
+channel = "stable"
+
+# Profiles define the core set of tools (minimal, default, or complete)
+profile = "default"
+
+# Automatically install extra tools for anyone working on the project
+components = [ "clippy", "rustfmt", "rust-analyzer" ]
+
+# Automatically install compilation targets (e.g., for WebAssembly or cross-compilation)
+#targets = [ "wasm32-unknown-unknown" ]

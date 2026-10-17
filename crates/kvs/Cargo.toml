@@ -1,0 +1,9 @@
+lints.workspace = true
+
+[package]
+name = "kvs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+thiserror = "2.0.21"
