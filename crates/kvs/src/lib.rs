@@ -1,10 +1,8 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum KvsError {
-    #[error("placeholder for future errors")]
-    Placeholder, // added so the type isn't a never type
-}
+#[non_exhaustive]
+pub enum KvsError {}
 
 pub type Result<T> = std::result::Result<T, KvsError>;
 

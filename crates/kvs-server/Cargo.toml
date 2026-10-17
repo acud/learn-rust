@@ -1,4 +1,5 @@
-lints.workspace = true
+[lints]
+workspace = true
 
 [package]
 name = "kvs-server"
