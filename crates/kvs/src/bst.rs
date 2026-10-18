@@ -18,19 +18,15 @@ impl<K: Ord, V> Bst<K, V> {
     }
 
     pub fn get(&self, key: &K) -> Option<&V> {
-        match self.len() {
-            0 => None,
-            1 => {
-                if let Some(v) = &self.children {
-                    if &v.key == key {
-                        return Some(&v.value);
-                    } else {
-                        return None;
-                    }
+        match &self.children {
+            None => None,
+            Some(n) => {
+                if &n.key == key {
+                    Some(&n.value)
+                } else {
+                    None
                 }
-                None
             }
-            _ => None,
         }
     }
 
