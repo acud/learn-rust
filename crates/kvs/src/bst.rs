@@ -16,6 +16,14 @@ impl<K, V> Bst<K, V> {
     pub fn len(&self) -> usize {
         self.len
     }
+
+    pub fn get(&self, key: &K) -> Option<&V> {
+        if self.len() == 0 {
+            return None;
+        }
+
+        None
+    }
 }
 
 struct Node<K, V> {
@@ -39,6 +47,6 @@ mod tests {
     #[test]
     fn get_none() {
         let v: Bst<String, String> = Bst::new();
-        assert_eq!(v.get(), None)
+        assert_eq!(v.get(&"some_key".to_string()), None)
     }
 }
