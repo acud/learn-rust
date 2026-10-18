@@ -23,10 +23,8 @@ impl<K: Ord, V> Bst<K, V> {
             1 => {
                 if let Some(v) = &self.children {
                     if &v.key == key {
-                        println!("1");
                         return Some(&v.value);
                     } else {
-                        println!("2");
                         return None;
                     }
                 }
