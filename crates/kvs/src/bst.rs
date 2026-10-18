@@ -20,33 +20,38 @@ impl<K: Ord, V> Bst<K, V> {
     pub fn get(&self, key: &K) -> Option<&V> {
         match self.len() {
             0 => None,
-            1 =>{ if let Some(v) = &self.children && &v.key==key {
-println!("1");
-                Some(&v.value)
-                } else {
-println!("2");
+            1 => {
+                if let Some(v) = &self.children {
+                    if &v.key == key {
+                        println!("1");
+                        return Some(&v.value);
+                    } else {
+                        println!("2");
+                        return None;
+                    }
+                }
                 None
             }
-            },
             _ => None,
         }
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Option<V> {
         match self.len() {
-            0 =>    {      
+            0 => {
                 self.children = Some(Box::new(Node {
-                key,
-                value,
-                left: None,
-                right: None,
+                    key,
+                    value,
+                    left: None,
+                    right: None,
                 }));
-                self.len+=1;
+                self.len += 1;
                 None
-            },
-          _=>   None,
+            }
+            _ => None,
+        }
     }
-}}
+}
 
 struct Node<K, V> {
     key: K,
