@@ -1,9 +1,9 @@
-pub struct Bst<K, V> {
+pub struct Bst<K: Ord, V> {
     children: Option<Box<Node<K, V>>>,
     len: usize,
 }
 
-impl<K, V> Bst<K, V> {
+impl<K: Ord, V> Bst<K, V> {
     pub fn new() -> Self {
         {
             Bst {
@@ -48,5 +48,11 @@ mod tests {
     fn get_none() {
         let v: Bst<String, String> = Bst::new();
         assert_eq!(v.get(&"some_key".to_string()), None)
+    }
+
+    #[test]
+    fn insert_one() {
+        let v: Bst<String, String> = Bst::new();
+        assert_eq!(v.insert("key", "value"), None);
     }
 }
