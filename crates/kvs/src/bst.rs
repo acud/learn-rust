@@ -35,4 +35,10 @@ mod tests {
 
         assert_eq!(v.len(), 0);
     }
+
+    #[test]
+    fn get_none() {
+        let v: Bst<String, String> = Bst::new();
+        assert_eq!(v.get(), None)
+    }
 }
