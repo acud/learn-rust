@@ -18,13 +18,35 @@ impl<K: Ord, V> Bst<K, V> {
     }
 
     pub fn get(&self, key: &K) -> Option<&V> {
-        if self.len() == 0 {
-            return None;
+        match self.len() {
+            0 => None,
+            1 =>{ if let Some(v) = &self.children && &v.key==key {
+println!("1");
+                Some(&v.value)
+                } else {
+println!("2");
+                None
+            }
+            },
+            _ => None,
         }
-
-        None
     }
-}
+
+    pub fn insert(&mut self, key: K, value: V) -> Option<V> {
+        match self.len() {
+            0 =>    {      
+                self.children = Some(Box::new(Node {
+                key,
+                value,
+                left: None,
+                right: None,
+                }));
+                self.len+=1;
+                None
+            },
+          _=>   None,
+    }
+}}
 
 struct Node<K, V> {
     key: K,
@@ -52,7 +74,8 @@ mod tests {
 
     #[test]
     fn insert_one() {
-        let v: Bst<String, String> = Bst::new();
-        assert_eq!(v.insert("key", "value"), None);
+        let mut v: Bst<String, String> = Bst::new();
+        assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
+        assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
     }
 }
