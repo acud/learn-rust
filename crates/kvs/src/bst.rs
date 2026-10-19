@@ -144,4 +144,25 @@ mod tests {
         assert_eq!(v.get(&"key111".to_string()), None);
         assert_eq!(v.len(), 1);
     }
+
+    #[test]
+    fn get_mix() {
+        let mut v: Bst<String, String> = Bst::new();
+        let tups = vec![
+            ("key", "value"),
+            ("key111", "valuexxx"),
+            ("kex", "vaxx"),
+            ("kfs", "vxy"),
+        ];
+        _ = tups
+            .iter()
+            .map(|(key, val)| v.insert(key.to_string(), val.to_string()))
+            .collect::<Vec<_>>();
+
+        assert_eq!(v.len(), 4);
+        //assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
+        //assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
+        //assert_eq!(v.get(&"key111".to_string()), None);
+        //assert_eq!(v.len(), 1);
+    }
 }
