@@ -160,9 +160,10 @@ mod tests {
             .collect::<Vec<_>>();
 
         assert_eq!(v.len(), 4);
-        //assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
-        //assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
-        //assert_eq!(v.get(&"key111".to_string()), None);
-        //assert_eq!(v.len(), 1);
+        _ = tups
+            .iter()
+            .rev()
+            .map(|(key, val)| assert_eq!(v.get(&key.to_string()), Some(&val.to_string())))
+            .collect::<Vec<_>>();
     }
 }
