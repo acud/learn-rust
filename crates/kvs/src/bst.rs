@@ -113,7 +113,8 @@ mod tests {
         let mut v: Bst<String, String> = Bst::new();
         assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
         assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
-        assert_eq!(v.insert("key2".to_string(), "value".to_string()), None);
+        assert_eq!(v.insert("key2".to_string(), "value2".to_string()), None);
         assert_eq!(v.len(), 2);
+        assert_eq!(v.get(&"key2".to_string()), Some(&"value2".to_string()));
     }
 }
