@@ -20,20 +20,27 @@ impl<K: Ord, V> Bst<K, V> {
     }
 
     pub fn get(&self, key: &K) -> Option<&V> {
-        //let mut cur: &mut Option<Box<Node<K, V>>> = &mut self.children;
-
-        match &self.children {
-            None => None,
-            Some(n) => {
-                if &n.key == key {
-                    if let Some(val) = &n.value {
-                        Some(val)
-                    } else {
-                        None
+        let mut cur: &Option<Box<Node<K, V>>> = &self.children;
+        loop {
+            match cur {
+                Some(vv) => match key.cmp(&vv.key) {
+                    Ordering::Less => {
+                        // key is smaller, go left
+                        cur = &vv.as_ref().left;
+                        continue;
                     }
-                } else {
-                    None
-                }
+                    Ordering::Equal => {
+                        // same key
+                        let ret = vv.value.as_ref();
+                        return ret;
+                    }
+                    Ordering::Greater => {
+                        //key is greater, go right
+                        cur = &vv.as_ref().right;
+                        continue;
+                    }
+                },
+                None => return None,
             }
         }
     }
