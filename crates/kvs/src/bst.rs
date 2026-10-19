@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 pub struct Bst<K: Ord, V> {
     children: Option<Box<Node<K, V>>>,
     len: usize,
@@ -22,7 +24,11 @@ impl<K: Ord, V> Bst<K, V> {
             None => None,
             Some(n) => {
                 if &n.key == key {
-                    Some(&n.value)
+                    if let Some(val) = &n.value {
+                        Some(val)
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }
@@ -31,25 +37,46 @@ impl<K: Ord, V> Bst<K, V> {
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Option<V> {
-        match self.len() {
-            0 => {
-                self.children = Some(Box::new(Node {
-                    key,
-                    value,
-                    left: None,
-                    right: None,
-                }));
-                self.len += 1;
-                None
+        let mut cur: &mut Option<Box<Node<K, V>>> = &mut self.children;
+        loop {
+            match cur {
+                Some(vv) => match key.cmp(&vv.key) {
+                    Ordering::Less => {
+                        println!("key is smaller, go left");
+                        cur = &mut vv.as_mut().left;
+                        continue;
+                    }
+                    Ordering::Equal => {
+                        println!("key is equal");
+                        let ret = vv.value.take();
+                        vv.value = Some(value);
+                        return ret;
+                    }
+                    Ordering::Greater => {
+                        println!("key is greater, go right");
+                        cur = &mut vv.as_mut().right;
+                        continue;
+                    }
+                },
+                None => {
+                    *cur = Some(Box::new(Node {
+                        key: key,
+                        value: Some(value),
+                        left: None,
+                        right: None,
+                    }));
+                    self.len += 1;
+                    break;
+                }
             }
-            _ => None,
         }
+        None
     }
 }
 
 struct Node<K, V> {
     key: K,
-    value: V,
+    value: Option<V>,
     left: Option<Box<Node<K, V>>>,
     right: Option<Box<Node<K, V>>>,
 }
@@ -76,5 +103,15 @@ mod tests {
         let mut v: Bst<String, String> = Bst::new();
         assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
         assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
+        assert_eq!(v.len(), 1);
+    }
+
+    #[test]
+    fn insert_two() {
+        let mut v: Bst<String, String> = Bst::new();
+        assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
+        assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
+        assert_eq!(v.insert("key2".to_string(), "value".to_string()), None);
+        assert_eq!(v.len(), 2);
     }
 }

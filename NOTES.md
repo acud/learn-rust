@@ -17,3 +17,17 @@ The unit test has access to the entire module tree of the file it is in. it ther
 
 in tests/ every file is a separate crate and can only see the exported members of a given crate that is being tested, which forces black box testing.
 
+
+Step 1.1 answers:
+
+
+1. Why can't a node be Node { left: Node, right: Node }?
+because the compiler tries to determine the type's size at compile time, and recursive types cannot have a deterministic size at compile time, that's why we use Box - to allocate the pointer to the type on the heap as an intermediate value, which would allow the compiler to resolve any recursive reference as just usize.
+
+2. Which trait bound does K need, and why exactly that one and no more?
+It needs Ord, because we want to know if the key that we compare against is < = > than the provided value. The other trait bounds for comparing provide us with semantics we don't need for this implementation.
+
+3. Write-up: the borrow-checker error you hit while writing iterative insert, what it said, and whether your code was wrong or the checker was too
+conservative.
+
+
