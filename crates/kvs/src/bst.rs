@@ -5,7 +5,14 @@ pub struct Bst<K: Ord, V> {
     len: usize,
 }
 
+impl<K: Ord, V> Default for Bst<K, V> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<K: Ord, V> Bst<K, V> {
+    #[must_use]
     pub fn new() -> Self {
         {
             Bst {
@@ -15,8 +22,14 @@ impl<K: Ord, V> Bst<K, V> {
         }
     }
 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.len
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
     }
 
     pub fn contains_key(&self, key: &K) -> bool {
@@ -31,7 +44,6 @@ impl<K: Ord, V> Bst<K, V> {
                     Ordering::Less => {
                         // key is smaller, go left
                         cur = &vv.as_ref().left;
-                        continue;
                     }
                     Ordering::Equal => {
                         // same key
@@ -41,7 +53,6 @@ impl<K: Ord, V> Bst<K, V> {
                     Ordering::Greater => {
                         //key is greater, go right
                         cur = &vv.as_ref().right;
-                        continue;
                     }
                 },
                 None => return None,
@@ -52,12 +63,11 @@ impl<K: Ord, V> Bst<K, V> {
     pub fn insert(&mut self, key: K, value: V) -> Option<V> {
         let mut cur: &mut Option<Box<Node<K, V>>> = &mut self.children;
         loop {
-            match cur {
-                Some(vv) => match key.cmp(&vv.key) {
+            if let Some(vv) = cur {
+                match key.cmp(&vv.key) {
                     Ordering::Less => {
                         // key is smaller, go left
                         cur = &mut vv.as_mut().left;
-                        continue;
                     }
                     Ordering::Equal => {
                         // same key
@@ -68,19 +78,17 @@ impl<K: Ord, V> Bst<K, V> {
                     Ordering::Greater => {
                         //key is greater, go right
                         cur = &mut vv.as_mut().right;
-                        continue;
                     }
-                },
-                None => {
-                    *cur = Some(Box::new(Node {
-                        key: key,
-                        value: Some(value),
-                        left: None,
-                        right: None,
-                    }));
-                    self.len += 1;
-                    break;
                 }
+            } else {
+                *cur = Some(Box::new(Node {
+                    key,
+                    value: Some(value),
+                    left: None,
+                    right: None,
+                }));
+                self.len += 1;
+                break;
             }
         }
         None
