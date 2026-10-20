@@ -39,23 +39,21 @@ impl<K: Ord, V> Bst<K, V> {
     pub fn get(&self, key: &K) -> Option<&V> {
         let mut cur: &Option<Box<Node<K, V>>> = &self.children;
         loop {
-            match cur {
-                Some(vv) => match key.cmp(&vv.key) {
-                    Ordering::Less => {
-                        // key is smaller, go left
-                        cur = &vv.as_ref().left;
-                    }
-                    Ordering::Equal => {
-                        // same key
-                        let ret = vv.value.as_ref();
-                        return ret;
-                    }
-                    Ordering::Greater => {
-                        //key is greater, go right
-                        cur = &vv.as_ref().right;
-                    }
-                },
-                None => return None,
+            let vv = cur.as_ref()?;
+            match key.cmp(&vv.key) {
+                Ordering::Less => {
+                    // key is smaller, go left
+                    cur = &vv.as_ref().left;
+                }
+                Ordering::Equal => {
+                    // same key
+                    let ret = vv.value.as_ref();
+                    return ret;
+                }
+                Ordering::Greater => {
+                    //key is greater, go right
+                    cur = &vv.as_ref().right;
+                }
             }
         }
     }
@@ -116,7 +114,7 @@ mod tests {
     #[test]
     fn get_none() {
         let v: Bst<String, String> = Bst::new();
-        assert_eq!(v.get(&"some_key".to_string()), None)
+        assert_eq!(v.get(&"some_key".to_string()), None);
     }
 
     #[test]
@@ -160,7 +158,7 @@ mod tests {
     #[test]
     fn get_mix() {
         let mut v: Bst<String, String> = Bst::new();
-        let tups = vec![
+        let tups = [
             ("key", "value"),
             ("key111", "valuexxx"),
             ("kex", "vaxx"),
@@ -184,7 +182,7 @@ mod tests {
         let mut v: Bst<String, String> = Bst::new();
         assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
         assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
-        assert_eq!(v.contains_key(&"key".to_string()), true);
-        assert_eq!(v.contains_key(&"no_key".to_string()), false);
+        assert!(v.contains_key(&"key".to_string()));
+        assert!(!v.contains_key(&"no_key".to_string()));
     }
 }
