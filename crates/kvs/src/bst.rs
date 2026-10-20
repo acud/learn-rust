@@ -19,6 +19,10 @@ impl<K: Ord, V> Bst<K, V> {
         self.len
     }
 
+    pub fn contains_key(&self, key: &K) -> bool {
+        self.get(key).is_some()
+    }
+
     pub fn get(&self, key: &K) -> Option<&V> {
         let mut cur: &Option<Box<Node<K, V>>> = &self.children;
         loop {
