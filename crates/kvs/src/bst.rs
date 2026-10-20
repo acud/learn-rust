@@ -166,4 +166,13 @@ mod tests {
             .map(|(key, val)| assert_eq!(v.get(&key.to_string()), Some(&val.to_string())))
             .collect::<Vec<_>>();
     }
+
+    #[test]
+    fn contains() {
+        let mut v: Bst<String, String> = Bst::new();
+        assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
+        assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
+        assert_eq!(v.contains_key(&"key".to_string()), true);
+        assert_eq!(v.contains_key(&"no_key".to_string()), false);
+    }
 }
