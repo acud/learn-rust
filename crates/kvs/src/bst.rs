@@ -1,24 +1,22 @@
 use std::cmp::Ordering;
 
-pub struct Bst<K: Ord, V> {
+pub struct Bst<K, V> {
     children: Option<Box<Node<K, V>>>,
     len: usize,
 }
 
-impl<K: Ord, V> Default for Bst<K, V> {
+impl<K, V> Default for Bst<K, V> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<K: Ord, V> Bst<K, V> {
+impl<K, V> Bst<K, V> {
     #[must_use]
     pub fn new() -> Self {
-        {
-            Bst {
-                children: None,
-                len: 0,
-            }
+        Bst {
+            children: None,
+            len: 0,
         }
     }
 
@@ -31,7 +29,9 @@ impl<K: Ord, V> Bst<K, V> {
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }
+}
 
+impl<K: Ord, V> Bst<K, V> {
     pub fn contains_key(&self, key: &K) -> bool {
         self.get(key).is_some()
     }
@@ -47,8 +47,7 @@ impl<K: Ord, V> Bst<K, V> {
                 }
                 Ordering::Equal => {
                     // same key
-                    let ret = vv.value.as_ref();
-                    return ret;
+                    return Some(&vv.value);
                 }
                 Ordering::Greater => {
                     //key is greater, go right
@@ -65,23 +64,21 @@ impl<K: Ord, V> Bst<K, V> {
                 match key.cmp(&vv.key) {
                     Ordering::Less => {
                         // key is smaller, go left
-                        cur = &mut vv.as_mut().left;
+                        cur = &mut vv.left;
                     }
                     Ordering::Equal => {
                         // same key
-                        let ret = vv.value.take();
-                        vv.value = Some(value);
-                        return ret;
+                        return Some(std::mem::replace(&mut vv.value, value));
                     }
                     Ordering::Greater => {
                         //key is greater, go right
-                        cur = &mut vv.as_mut().right;
+                        cur = &mut vv.right;
                     }
                 }
             } else {
                 *cur = Some(Box::new(Node {
                     key,
-                    value: Some(value),
+                    value,
                     left: None,
                     right: None,
                 }));
@@ -95,7 +92,7 @@ impl<K: Ord, V> Bst<K, V> {
 
 struct Node<K, V> {
     key: K,
-    value: Option<V>,
+    value: V,
     left: Option<Box<Node<K, V>>>,
     right: Option<Box<Node<K, V>>>,
 }
@@ -158,23 +155,20 @@ mod tests {
     #[test]
     fn get_mix() {
         let mut v: Bst<String, String> = Bst::new();
-        let tups = [
+        let mut tups = [
             ("key", "value"),
             ("key111", "valuexxx"),
             ("kex", "vaxx"),
             ("kfs", "vxy"),
         ];
-        _ = tups
-            .iter()
-            .map(|(key, val)| v.insert(key.to_string(), val.to_string()))
-            .collect::<Vec<_>>();
-
+        for item in tups {
+            v.insert(item.0.to_string(), item.1.to_string());
+        }
         assert_eq!(v.len(), 4);
-        _ = tups
-            .iter()
-            .rev()
-            .map(|(key, val)| assert_eq!(v.get(&key.to_string()), Some(&val.to_string())))
-            .collect::<Vec<_>>();
+        tups.reverse();
+        for item in tups {
+            assert_eq!(v.get(&item.0.to_string()), Some(&item.1.to_string()));
+        }
     }
 
     #[test]
