@@ -41,3 +41,11 @@ Newest entry at the bottom. Each entry: date, step, scores (Correctness / Tests 
   1. Q3 still has the "reborrow again" sentence and no Polonius mention; the stale clippy NOTE is still there.
   2. Q2 says PartialOrd "does not have an Equals value", which is wrong: `partial_cmp` returns `Option<Ordering>`. Also explain why `Eq` isn't a separate bound.
 - Outcome: **not passed**, pending the NOTES fixes. The code is approved as is.
+
+## 2026-10-20: Step 1.1 Owned BST (final)
+
+- Scores: Correctness 9 / Tests 8 / Idiom 8 / API 8 / Understanding 8. Overall 8.2 (B+)
+- Tooling: 8/8 tests, clippy pedantic clean, fmt clean.
+- NOTES Q2 and Q3 fixed (Option<Ordering> and incomparable keys, Eq as a supertrait, a single loan before the branch, Polonius).
+- Carry-over (non-blocking): redundant `as_ref()` in `get`, comments that restate code, no docs on public items. Commit the NOTES change.
+- Outcome: **passed**. Current step moves to 1.2.

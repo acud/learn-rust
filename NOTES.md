@@ -30,9 +30,8 @@ Also, Option<Box<T>> is the same size in  memory like Box<T> because of the null
 2. Which trait bound does K need, and why exactly that one and no more?
 It needs Ord, because we want to know if the key that we compare against is < = > than the provided value. The other trait bounds for comparing provide us with semantics we don't need for this implementation.
 PartialOrd allows for comparison between values that might not be comparable. For example, f64::NAN can still compare against another f64 (just returns false).
-Also, PartialOrd does not have an Equals value, so the cases of gte or lte are irrelevant for this use case since we'd have to match on two cases in order to deduct that two values are equal.
-Also, it returns an option, because order is optional (f64::NAN), and in this case for a BST the behavior is undefined.
-
+Also, it returns an option, because order is optional (f64::NAN), and in this case for a BST we don't know what to do with the value as it would never compare against anything else. we could also never retrieve the value potentially again.
+Eq is not needed because it is a supertrait of Ord.
 
 3. Write-up: the borrow-checker error you hit while writing iterative insert, what it said, and whether your code was wrong or the checker was too
 conservative.

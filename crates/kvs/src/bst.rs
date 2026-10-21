@@ -43,7 +43,7 @@ impl<K: Ord, V> Bst<K, V> {
             match key.cmp(&vv.key) {
                 Ordering::Less => {
                     // key is smaller, go left
-                    cur = &vv.as_ref().left;
+                    cur = &vv.left;
                 }
                 Ordering::Equal => {
                     // same key
@@ -51,7 +51,7 @@ impl<K: Ord, V> Bst<K, V> {
                 }
                 Ordering::Greater => {
                     //key is greater, go right
-                    cur = &vv.as_ref().right;
+                    cur = &vv.right;
                 }
             }
         }
