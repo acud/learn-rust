@@ -30,7 +30,9 @@ Also, Option<Box<T>> is the same size in  memory like Box<T> because of the null
 2. Which trait bound does K need, and why exactly that one and no more?
 It needs Ord, because we want to know if the key that we compare against is < = > than the provided value. The other trait bounds for comparing provide us with semantics we don't need for this implementation.
 PartialOrd allows for comparison between values that might not be comparable. For example, f64::NAN can still compare against another f64 (just returns false).
-Also, PartialOrd does not have an Equals value, so the cases of gte or lte are irrelevant for this use case.
+Also, PartialOrd does not have an Equals value, so the cases of gte or lte are irrelevant for this use case since we'd have to match on two cases in order to deduct that two values are equal.
+Also, it returns an option, because order is optional (f64::NAN), and in this case for a BST the behavior is undefined.
+
 
 3. Write-up: the borrow-checker error you hit while writing iterative insert, what it said, and whether your code was wrong or the checker was too
 conservative.
@@ -39,9 +41,9 @@ THE BORROW CHECKER WAS TOO CONSERVATIVE. although the code was definitely not ma
 
 I hit the "first borrow used here, in later iteration of loop" E0499 (NLL problem case #3) while writing the insert.
 I worked through it like this:
-initially we had an as_mut() call in the first match, this caused that the reborrow was created before any of the match arms were entered. but also that because as_mut takes &self mut, then it would try to reborrow again on the mutable borrow using references to that reborrow and that would cause the compiler to not assert correctly whether we're trying to reborrow again a mutable ref.
+initially we had an as_mut() call in the first match, this caused that the reborrow was created before any of the match arms were entered. 
+there was one loan being created before both match arms and therefore caused the problem due to the lifetime of the loan.
 The problem was that we broke out of the loop while vv was live and that *cur was modified after the loop.
 I went around it by matching directly on cur (the place itself) instead of creating intermediate references (as_mut) and then writing the logic that actually modifies the data in the right places.
 That allowed the compiler to borrow mutably just when needed (when the match arms bind) instead of when the initial match case happened.
-
-NOTE: the last clippy pending change - i tried to apply it, but it won't compile, not sure why.
+Polonius (the newer borrow checker implementation) would accept the original code.

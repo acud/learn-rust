@@ -31,3 +31,13 @@ Newest entry at the bottom. Each entry: date, step, scores (Correctness / Tests 
   3. NOTES Q3: give a clear verdict (checker too conservative vs code wrong), mention Polonius, and fix the inaccuracies (the Equal-arm problem was break-then-use-after-loop, not "mutating"; it was a reborrow via as_mut, not a "reborrow again").
   4. Commit the outstanding work.
 - Outcome: **not passed**. Current step stays at 1.1.
+
+## 2026-10-20: Step 1.1 Owned BST (re-review)
+
+- Scores: Correctness 9 / Tests 8 / Idiom 8 / API 8 / Understanding 6. Overall 7.8 (B)
+- Tooling: build ok; 8/8 tests; clippy pedantic clean; fmt clean. All committed.
+- Resolved: clippy (`as_ref()?`), `value: V` + `mem::replace`, bounds moved to impls, verdict added to Q3, `for` loops in tests.
+- Must fix (NOTES only):
+  1. Q3 still has the "reborrow again" sentence and no Polonius mention; the stale clippy NOTE is still there.
+  2. Q2 says PartialOrd "does not have an Equals value", which is wrong: `partial_cmp` returns `Option<Ordering>`. Also explain why `Eq` isn't a separate bound.
+- Outcome: **not passed**, pending the NOTES fixes. The code is approved as is.
