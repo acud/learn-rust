@@ -82,6 +82,10 @@ impl<K: Ord, V> Bst<K, V> {
         }
         None
     }
+
+    fn remove(&mut self, key: &K) -> Option<V> {
+        None
+    }
 }
 
 struct Node<K, V> {
@@ -172,5 +176,14 @@ mod tests {
         assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
         assert!(v.contains_key(&"key".to_string()));
         assert!(!v.contains_key(&"no_key".to_string()));
+    }
+
+    #[test]
+    fn remove_simple() {
+        let mut v: Bst<String, String> = Bst::new();
+        assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
+        assert_eq!(v.remove(&"key".to_string()), Some("value".to_string()));
+        assert!(!v.contains_key(&"key".to_string()));
+        assert_eq!(v.len(), 0);
     }
 }
