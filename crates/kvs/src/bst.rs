@@ -84,7 +84,49 @@ impl<K: Ord, V> Bst<K, V> {
     }
 
     fn remove(&mut self, key: &K) -> Option<V> {
-        None
+        let mut cur: &mut Option<Box<Node<K, V>>> = &mut self.children;
+        loop {
+            let mut ord: Ordering;
+            if let Some(vv) = cur {
+                let j = vv.as_ref();
+                ord = key.cmp(&j.key);
+            } else {
+                return None;
+            }
+            match ord {
+                Ordering::Less => {
+                    if let Some(v) = cur {
+                        cur = &mut v.left;
+                    } else {
+                        return None;
+                    }
+                }
+                Ordering::Equal => {
+                    // simple case - leaf
+                    let cc = cur.as_ref().unwrap();
+                    if cc.left.is_none() && cc.right.is_none() {
+                        let ret = cur.take();
+                        self.len -= 1;
+                        return Some(ret.unwrap().value);
+                    }
+                    // if there's a "right" (higher node) we replace this current
+                    // node with that node's key,value
+                    // if there's
+                    //let mut cur_replace:
+                    //return Some(std::mem::replace(&mut vv.value, value));
+                    return None;
+                }
+                Ordering::Greater => {
+                    //let rr = &mut cur.unwrap().right;
+                    //cur = rr;
+                    if let Some(v) = cur {
+                        cur = &mut v.right
+                    } else {
+                        return None;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -185,5 +227,18 @@ mod tests {
         assert_eq!(v.remove(&"key".to_string()), Some("value".to_string()));
         assert!(!v.contains_key(&"key".to_string()));
         assert_eq!(v.len(), 0);
+    }
+
+    #[test]
+    fn remove_three_nodes() {
+        let mut v: Bst<i16, String> = Bst::new();
+        assert_eq!(v.insert(10, "value".to_string()), None);
+        assert_eq!(v.insert(5, "value".to_string()), None);
+        assert_eq!(v.insert(15, "value".to_string()), None);
+        assert_eq!(v.remove(&5), Some("value".to_string()));
+        assert!(!v.contains_key(&5));
+        assert!(v.contains_key(&10));
+        assert!(v.contains_key(&15));
+        assert_eq!(v.len(), 2);
     }
 }
