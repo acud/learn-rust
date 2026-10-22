@@ -83,13 +83,12 @@ impl<K: Ord, V> Bst<K, V> {
         None
     }
 
-    fn remove(&mut self, key: &K) -> Option<V> {
+    pub fn remove(&mut self, key: &K) -> Option<V> {
         let mut cur: &mut Option<Box<Node<K, V>>> = &mut self.children;
         loop {
-            let mut ord: Ordering;
+            let ord: Ordering;
             if let Some(vv) = cur {
-                let j = vv.as_ref();
-                ord = key.cmp(&j.key);
+                ord = key.cmp(&vv.key);
             } else {
                 return None;
             }
@@ -97,17 +96,19 @@ impl<K: Ord, V> Bst<K, V> {
                 Ordering::Less => {
                     if let Some(v) = cur {
                         cur = &mut v.left;
-                    } else {
-                        return None;
+                        continue;
                     }
                 }
                 Ordering::Equal => {
                     // simple case - leaf
                     let cc = cur.as_ref().unwrap();
                     if cc.left.is_none() && cc.right.is_none() {
-                        let ret = cur.take();
+                        // ret can never be None here so decrementing is fine although the map()
+                        // can return a None if take() returns that. this is safe because of the Some check in
+                        // the top of the loop
+                        let ret = cur.take().map(|o| o.value);
                         self.len -= 1;
-                        return Some(ret.unwrap().value);
+                        return ret;
                     }
                     // if there's a "right" (higher node) we replace this current
                     // node with that node's key,value
@@ -117,12 +118,9 @@ impl<K: Ord, V> Bst<K, V> {
                     return None;
                 }
                 Ordering::Greater => {
-                    //let rr = &mut cur.unwrap().right;
-                    //cur = rr;
                     if let Some(v) = cur {
-                        cur = &mut v.right
-                    } else {
-                        return None;
+                        cur = &mut v.right;
+                        continue;
                     }
                 }
             }
