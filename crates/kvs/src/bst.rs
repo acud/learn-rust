@@ -42,15 +42,12 @@ impl<K: Ord, V> Bst<K, V> {
             let vv = cur.as_ref()?;
             match key.cmp(&vv.key) {
                 Ordering::Less => {
-                    // key is smaller, go left
                     cur = &vv.left;
                 }
                 Ordering::Equal => {
-                    // same key
                     return Some(&vv.value);
                 }
                 Ordering::Greater => {
-                    //key is greater, go right
                     cur = &vv.right;
                 }
             }
@@ -63,15 +60,12 @@ impl<K: Ord, V> Bst<K, V> {
             if let Some(vv) = cur {
                 match key.cmp(&vv.key) {
                     Ordering::Less => {
-                        // key is smaller, go left
                         cur = &mut vv.left;
                     }
                     Ordering::Equal => {
-                        // same key
                         return Some(std::mem::replace(&mut vv.value, value));
                     }
                     Ordering::Greater => {
-                        //key is greater, go right
                         cur = &mut vv.right;
                     }
                 }

@@ -49,3 +49,7 @@ Newest entry at the bottom. Each entry: date, step, scores (Correctness / Tests 
 - NOTES Q2 and Q3 fixed (Option<Ordering> and incomparable keys, Eq as a supertrait, a single loan before the branch, Polonius).
 - Carry-over (non-blocking): redundant `as_ref()` in `get`, comments that restate code, no docs on public items. Commit the NOTES change.
 - Outcome: **passed**. Current step moves to 1.2.
+
+## 2026-10-22: Correction to the step 1.1 carry-over
+
+- Retracted: "redundant `as_ref()` in `get`". It is required. `?` needs an owned `Option<T>`, and `cur` is `&Option<Box<Node>>`. `as_ref()` produces `Option<&Box<Node>>` without moving out of the borrow. The student pointed this out correctly.
