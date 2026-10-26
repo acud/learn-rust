@@ -96,11 +96,9 @@ impl<K: Ord, V> Bst<K, V> {
                 Ordering::Less => {
                     if let Some(v) = cur {
                         cur = &mut v.left;
-                        continue;
                     }
                 }
                 Ordering::Equal => {
-                    // simple case - leaf
                     let cc = cur.as_ref()?;
                     if cc.left.is_none() && cc.right.is_none() {
                         // ret can never be None here so decrementing is fine although the map()
@@ -109,41 +107,30 @@ impl<K: Ord, V> Bst<K, V> {
                         let ret = cur.take().map(|o| o.value);
                         self.len -= 1;
                         return ret;
-                    } else if cc.left.is_some() && cc.right.is_none() {
-                        let ts = cur.as_deref_mut()?.left.take()?;
-                        let old = cur.replace(ts);
-                        return Some(old.unwrap().value);
-                    } else if cc.left.is_none() && cc.right.is_some() {
-                        let ts = cur.as_deref_mut()?.right.take()?;
-                        let old = cur.replace(ts);
-                        return Some(old.unwrap().value);
-                    } else {
-                        return None;
                     }
-                    // find next successor
-                    //if cc.right.is_some() {
-                    //let mut c2 = &mut cc.right;
-                    //loop {
-                    //match c2 {
-                    //None => return None,
-                    //Some(ccx) => {
-                    //if let None = cc.left {
-                    //// swap
-                    //let vvv = cur.as_mut()?;
-                    //std::mem::replace(&mut vvv.key, ccx.key);
-                    //std::mem::replace(&mut vvv.value, ccx.value);
-                    //} else {
-                    //c2 = &mut cc.left;
-                    //}
-                    //}
-                    //}
-                    //}
-                    //}
+                    let oo: Box<Node<K, V>> = if cc.left.is_some() && cc.right.is_none() {
+                        cur.as_deref_mut()
+                            .expect("expected cur value")
+                            .left
+                            .take()
+                            .expect("expected value")
+                    } else if cc.left.is_none() && cc.right.is_some() {
+                        cur.as_deref_mut()
+                            .expect("expected cur value")
+                            .right
+                            .take()
+                            .expect("expected value")
+                    } else {
+                        unimplemented!("beep")
+                    };
+
+                    let old = cur.replace(oo);
+                    self.len -= 1;
+                    return Some(old.unwrap().value);
                 }
                 Ordering::Greater => {
                     if let Some(v) = cur {
                         cur = &mut v.right;
-                        continue;
                     }
                 }
             }
