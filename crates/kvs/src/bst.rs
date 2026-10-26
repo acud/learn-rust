@@ -264,7 +264,7 @@ mod tests {
     }
 
     #[test]
-    fn remove_child_with_subtree() {
+    fn remove_child_with_left_subtree() {
         let mut v: Bst<i16, String> = Bst::new();
         assert_eq!(v.insert(10, "value".to_string()), None);
         assert_eq!(v.insert(5, "value".to_string()), None);
@@ -274,6 +274,21 @@ mod tests {
         assert_eq!(v.remove(&5), Some("value".to_string()));
         assert!(!v.contains_key(&5));
         for i in [10, 15, 4, 3] {
+            assert!(v.contains_key(&i));
+        }
+    }
+
+    #[test]
+    fn remove_child_with_right_subtree() {
+        let mut v: Bst<i16, String> = Bst::new();
+        assert_eq!(v.insert(10, "value".to_string()), None);
+        assert_eq!(v.insert(5, "value".to_string()), None);
+        assert_eq!(v.insert(15, "value".to_string()), None);
+        assert_eq!(v.insert(6, "value".to_string()), None);
+        assert_eq!(v.insert(7, "value".to_string()), None);
+        assert_eq!(v.remove(&5), Some("value".to_string()));
+        assert!(!v.contains_key(&5));
+        for i in [10, 15, 6, 7] {
             assert!(v.contains_key(&i));
         }
     }
