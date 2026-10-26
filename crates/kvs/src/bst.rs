@@ -109,10 +109,36 @@ impl<K: Ord, V> Bst<K, V> {
                         let ret = cur.take().map(|o| o.value);
                         self.len -= 1;
                         return ret;
+                    } else if cc.left.is_some() && cc.right.is_none() {
+                        let ts = cur.as_deref_mut()?.left.take()?;
+                        let old = cur.replace(ts);
+                        return Some(old.unwrap().value);
+                    } else if cc.left.is_none() && cc.right.is_some() {
+                        let ts = cur.as_deref_mut()?.right.take()?;
+                        let old = cur.replace(ts);
+                        return Some(old.unwrap().value);
+                    } else {
+                        return None;
                     }
-                    // if there's a "right" (higher node) we replace this current
-                    // node with that node's key,value
-                    return None;
+                    // find next successor
+                    //if cc.right.is_some() {
+                    //let mut c2 = &mut cc.right;
+                    //loop {
+                    //match c2 {
+                    //None => return None,
+                    //Some(ccx) => {
+                    //if let None = cc.left {
+                    //// swap
+                    //let vvv = cur.as_mut()?;
+                    //std::mem::replace(&mut vvv.key, ccx.key);
+                    //std::mem::replace(&mut vvv.value, ccx.value);
+                    //} else {
+                    //c2 = &mut cc.left;
+                    //}
+                    //}
+                    //}
+                    //}
+                    //}
                 }
                 Ordering::Greater => {
                     if let Some(v) = cur {
