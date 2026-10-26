@@ -101,7 +101,7 @@ impl<K: Ord, V> Bst<K, V> {
                 }
                 Ordering::Equal => {
                     // simple case - leaf
-                    let cc = cur.as_ref().unwrap();
+                    let cc = cur.as_ref()?;
                     if cc.left.is_none() && cc.right.is_none() {
                         // ret can never be None here so decrementing is fine although the map()
                         // can return a None if take() returns that. this is safe because of the Some check in
@@ -112,9 +112,6 @@ impl<K: Ord, V> Bst<K, V> {
                     }
                     // if there's a "right" (higher node) we replace this current
                     // node with that node's key,value
-                    // if there's
-                    //let mut cur_replace:
-                    //return Some(std::mem::replace(&mut vv.value, value));
                     return None;
                 }
                 Ordering::Greater => {
