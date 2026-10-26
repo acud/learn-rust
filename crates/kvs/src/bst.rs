@@ -263,6 +263,8 @@ mod tests {
         for i in [10, 15, 4, 3] {
             assert!(v.contains_key(&i));
         }
+
+        assert_eq!(v.len(), 4);
     }
 
     #[test]
@@ -278,5 +280,7 @@ mod tests {
         for i in [10, 15, 6, 7] {
             assert!(v.contains_key(&i));
         }
+
+        assert_eq!(v.len(), 4);
     }
 }
