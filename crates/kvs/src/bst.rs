@@ -121,7 +121,30 @@ impl<K: Ord, V> Bst<K, V> {
                             .take()
                             .expect("expected value")
                     } else {
-                        unimplemented!("beep")
+                        // node has two children
+                        // try to find the next in order on the right
+                        if let Some(i) = cur {
+                            let mut cur2 = &mut i.right;
+                            loop {
+                                let mut go_left = false;
+                                if let Some(vvv) = cur2 {
+                                    if vvv.left.is_some() {
+                                        go_left = true;
+                                    } else {
+                                        break;
+                                    }
+                                }
+                                if go_left {
+                                    if let Some(t) = cur2 {
+                                        cur2 = &mut t.left
+                                    }
+                                }
+                            }
+                            let ocr = cur2.take().expect("val");
+                            ocr
+                        } else {
+                            unimplemented!()
+                        }
                     };
 
                     let old = cur.replace(oo);
@@ -265,6 +288,21 @@ mod tests {
         }
 
         assert_eq!(v.len(), 4);
+    }
+
+    #[test]
+    fn remove_child_simple() {
+        let mut v: Bst<i16, String> = Bst::new();
+        assert_eq!(v.insert(5, "value".to_string()), None);
+        assert_eq!(v.insert(3, "value".to_string()), None);
+        assert_eq!(v.insert(8, "value".to_string()), None);
+        assert_eq!(v.remove(&5), Some("value".to_string()));
+        assert!(!v.contains_key(&5));
+        for i in [3, 8] {
+            assert!(v.contains_key(&i));
+        }
+
+        assert_eq!(v.len(), 2);
     }
 
     #[test]
