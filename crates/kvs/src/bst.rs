@@ -1,4 +1,6 @@
 use std::cmp::Ordering;
+use std::fmt::Debug;
+use std::mem;
 
 pub struct Bst<K, V> {
     children: Option<Box<Node<K, V>>>,
@@ -31,7 +33,7 @@ impl<K, V> Bst<K, V> {
     }
 }
 
-impl<K: Ord, V> Bst<K, V> {
+impl<K: Ord+Debug, V:Debug> Bst<K, V> {
     pub fn contains_key(&self, key: &K) -> bool {
         self.get(key).is_some()
     }
@@ -145,19 +147,30 @@ impl<K: Ord, V> Bst<K, V> {
                                     cur2 = &mut t.left;
                                 }
                             }
-                            cur2.take().expect("val")
+                           let mut successor= cur2.take().expect("val");
+                           _ = mem::replace(cur2, successor.right.take());
+                           successor
                         } else {
                             unimplemented!()
                         }
                     };
-
+                    dbg!(&oo);
                     if single {
                         let old = cur.replace(oo).unwrap();
                         self.len -= 1;
                         return Some(old.value);
                     }
-                    oo.left = cur.as_deref_mut().unwrap().left.take();
+
+                    dbg!(&oo);
+                    oo.left = cur.as_deref_mut().unwrap().left.take().or(oo.left);
+
+                    dbg!(&oo);
+                    if oo.right.is_some() {
+                        let g = oo.right.take();
+                    }
                     oo.right = cur.as_deref_mut().unwrap().right.take();
+
+                    dbg!(&oo);
                     let old = cur.replace(oo).unwrap();
                     self.len -= 1;
                     return Some(old.value);
@@ -172,6 +185,7 @@ impl<K: Ord, V> Bst<K, V> {
     }
 }
 
+#[derive(Debug)]
 struct Node<K, V> {
     key: K,
     value: V,
@@ -384,5 +398,35 @@ mod tests {
         for i in 0..1_000_000 {
             v.insert(i, "value".to_string());
         }
+    }
+
+    #[test]
+    fn test_regression_remove() {
+        let mut v: Bst<i16, String> = Bst::new();
+        for i in [5, 3,8,9] {
+            assert_eq!(v.insert(i, "value".to_string()), None);
+        }
+        assert_eq!(v.remove(&5), Some("value".to_string()));
+        dbg!(&v.children);
+        assert!(!v.contains_key(&5));
+        for i in [3, 8,9] {
+            dbg!(&i);
+            assert!(v.contains_key(&i));
+        }
+
+        assert_eq!(v.len(), 3);
+ 
+        let mut v: Bst<i16, String> = Bst::new();
+        for i in [5, 3, 10, 7, 8] {
+            assert_eq!(v.insert(i, "value".to_string()), None);
+        }
+        assert_eq!(v.remove(&5), Some("value".to_string()));
+        assert!(!v.contains_key(&5));
+        for i in [3,10,7, 8] {
+            dbg!(&i);
+            assert!(v.contains_key(&i));
+        }
+
+        assert_eq!(v.len(), 4);
     }
 }

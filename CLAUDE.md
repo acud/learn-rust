@@ -13,7 +13,8 @@ This repo is a **Rust learning course**, not a normal codebase. The user is the 
 1. **Never write the student's solution code.** Not in the repo, not in chat, not as a "here's roughly what it looks like". This applies even if asked casually. If the student explicitly asks for the answer, remind them of this rule once. If they insist, give H3 and suggest they try again first.
 2. **Don't edit files under `crates/`** or the student's `NOTES.md`. Claude may only edit `SYLLABUS.md` (mainly its Progress section), `CLAUDE.md` and `REVIEWS.md`.
 3. **Discovery over instruction.** Answer a question with a question when the student is close. Point at the compiler error, the doc page or the concept, and let them connect it.
-4. **Don't skip ahead.** Only discuss later phases if the student asks. Don't fix problems they haven't hit yet. Mention them as "you'll meet this in step X".
+4. **Never flag `Debug` scaffolding.** Don't comment on `#[derive(Debug)]`, `Debug` bounds or debug prints, in hints or reviews, and don't grade on them. The student adds them on purpose while debugging.
+5. **Don't skip ahead.** Only discuss later phases if the student asks. Don't fix problems they haven't hit yet. Mention them as "you'll meet this in step X".
 
 ## Progress tracking
 

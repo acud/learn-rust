@@ -46,3 +46,19 @@ The problem was that we broke out of the loop while vv was live and that *cur wa
 I went around it by matching directly on cur (the place itself) instead of creating intermediate references (as_mut) and then writing the logic that actually modifies the data in the right places.
 That allowed the compiler to borrow mutably just when needed (when the match arms bind) instead of when the initial match case happened.
 Polonius (the newer borrow checker implementation) would accept the original code.
+
+NOTES 1.2:
+1. why the test crashed and how you fixed it (use the linked-list comparison)
+the test crashed on the 1mil case due to Box drop not being tail recursive, so the complier can't optimize the call.
+i solved it by implementing a simple stack to which we pop the current node's children and allow the node to go out of scope gracefully without then triggering a recursive drop on the children, which for a degenerate tree overflows the stack.
+2. what Option::take does at the memory level;
+moves the value out of the place and leaves a None.
+since an option's value is either a zero or the address of the value, then it just leaves a zero behind and takes ownership over the memory for the newly created variable.
+3. which end of the Vec you pop from, whether it matters, and how big the Vec gets compared with the recursion depth;
+a vec is a lifo stack. so we pop from the head, not the tail. i guess it matters because:
+if we pop from the head, then we replace the head with at most 2 elements. if we pop from the tail, we keep growing the vector. for a degenerate tree then it means that the vec is at most with length N where N is tree element length
+4. the borrow-checker verdict on the go_left flag: one sentence on why the flag fixed it, and whether it was the checker's limit or your code;
+this was needed because of cur2 - we tried to reborrow it when walking down, and then later take() from it, because the borrow checker ran into the same problem as before (the lifetime was taken to be the whole subsection where cur2 is alive till the point of the take())
+this is again the borrow checker strictness we ran into before.
+5. your numbers: O(n²) vs O(n log n), and the debug vs release timings, with your explanation of why release only gave you 2×.
+100k entries took 24s, and time appeared to increase 2^n for a linear change in size. so 1mil = ~40m. running in --release improved code optimization and so reduced execution time in half due to memory heaviness in the code.
