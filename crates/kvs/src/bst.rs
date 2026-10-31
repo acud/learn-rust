@@ -344,4 +344,12 @@ mod tests {
 
         assert_eq!(v.len(), 4);
     }
+
+    #[test]
+    fn one_mil_test() {
+        let mut v: Bst<i32, String> = Bst::new();
+        for i in 0..1_000_000 {
+            v.insert(i, "value".to_string());
+        }
+    }
 }
