@@ -30,8 +30,8 @@ impl<K, V> Bst<K, V> {
         self.len == 0
     }
 }
-use std::fmt::Debug;
-impl<K: Ord + Debug, V: Debug> Bst<K, V> {
+
+impl<K: Ord, V> Bst<K, V> {
     pub fn contains_key(&self, key: &K) -> bool {
         self.get(key).is_some()
     }
@@ -142,7 +142,6 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
                                 }
                             }
                             let ocr = cur2.take().expect("val");
-                            dbg!("{}", &ocr);
                             ocr
                         } else {
                             unimplemented!()
@@ -182,6 +181,25 @@ impl<K, V> Node<K, V> {
     pub fn has_single_child(&self) -> bool {
         (self.left.is_some() && self.right.is_none())
             || (self.left.is_none() && self.right.is_some())
+    }
+}
+
+impl<K, V> Drop for Bst<K, V> {
+    fn drop(&mut self) {
+        let root = self.children.take();
+        let mut v = vec![];
+        if let Some(elem) = root {
+            v.push(elem);
+        }
+
+        while let Some(mut elem) = v.pop() {
+            if elem.left.is_some() {
+                v.push(elem.left.take().expect("safe to pop"));
+            }
+            if elem.right.is_some() {
+                v.push(elem.right.take().expect("safe to pop"));
+            }
+        }
     }
 }
 
@@ -298,10 +316,7 @@ mod tests {
         assert_eq!(v.insert(15, "value".to_string()), None);
         assert_eq!(v.insert(4, "value".to_string()), None);
         assert_eq!(v.insert(3, "value".to_string()), None);
-
-        dbg!("{}", &v.children);
         assert_eq!(v.remove(&5), Some("value".to_string()));
-        dbg!("{}", &v.children);
         assert!(!v.contains_key(&5));
         for i in [10, 15, 4, 3] {
             assert!(v.contains_key(&i));
@@ -342,8 +357,10 @@ mod tests {
         assert_eq!(v.len(), 4);
     }
 
-    //#[test]
+    #[test]
+    #[ignore = "takes too long to complete"]
     fn one_mil_test() {
+        // 100k entries take about 24s to complete and so 1mil is expected 2400s = 40m
         let mut v: Bst<i32, String> = Bst::new();
         for i in 0..1_000_000 {
             v.insert(i, "value".to_string());
