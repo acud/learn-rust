@@ -117,16 +117,16 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
                     }
                     let mut oo: Box<Node<K, V>> = if cc.left.is_some() && cc.right.is_none() {
                         cur.as_deref_mut()
-                            .expect("expected cur value")
+                            .expect("safe due to earlier check")
                             .left
                             .take()
-                            .expect("expected value")
+                            .expect("safe due to earlier check")
                     } else if cc.left.is_none() && cc.right.is_some() {
                         cur.as_deref_mut()
-                            .expect("expected cur value")
+                            .expect("safe due to earlier check")
                             .right
                             .take()
-                            .expect("expected value")
+                            .expect("safe due to earlier check")
                     } else {
                         // node has two children
                         // try to find the next in order on the right
@@ -145,7 +145,7 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
                                     cur2 = &mut t.left;
                                 }
                             }
-                            let mut successor = cur2.take().expect("val");
+                            let mut successor = cur2.take().expect("safe due to earlier check");
                             *cur2 = successor.right.take();
                             successor
                         } else {
@@ -189,24 +189,24 @@ impl<K, V> Node<K, V> {
     }
 }
 
-impl<K, V> Drop for Bst<K, V> {
-    fn drop(&mut self) {
-        let root = self.children.take();
-        let mut v = vec![];
-        if let Some(elem) = root {
-            v.push(elem);
-        }
+//impl<K, V> Drop for Bst<K, V> {
+    //fn drop(&mut self) {
+        //let root = self.children.take();
+        //let mut v = vec![];
+        //if let Some(elem) = root {
+            //v.push(elem);
+        //}
 
-        while let Some(mut elem) = v.pop() {
-            if elem.left.is_some() {
-                v.push(elem.left.take().expect("safe to pop"));
-            }
-            if elem.right.is_some() {
-                v.push(elem.right.take().expect("safe to pop"));
-            }
-        }
-    }
-}
+        //while let Some(mut elem) = v.pop() {
+            //if elem.left.is_some() {
+                //v.push(elem.left.take().expect("safe to pop"));
+            //}
+            //if elem.right.is_some() {
+                //v.push(elem.right.take().expect("safe to pop"));
+            //}
+        //}
+    //}
+//}
 
 #[cfg(test)]
 mod tests {
@@ -385,6 +385,15 @@ mod tests {
         // 100k entries take about 24s to complete and so 1mil is expected 2400s = 40m
         let mut v: Bst<i32, String> = Bst::new();
         for i in 0..1_000_000 {
+            v.insert(i, "value".to_string());
+        }
+    }
+  
+    #[test]
+    fn always_on_drop_test() {
+        // 100k entries take about 24s to complete and so 1mil is expected 2400s = 40m
+        let mut v: Bst<i32, String> = Bst::new();
+        for i in 0..16330{
             v.insert(i, "value".to_string());
         }
     }
