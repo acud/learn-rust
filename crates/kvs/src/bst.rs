@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 use std::fmt::Debug;
-use std::mem;
 
 pub struct Bst<K, V> {
     children: Option<Box<Node<K, V>>>,
@@ -33,7 +32,7 @@ impl<K, V> Bst<K, V> {
     }
 }
 
-impl<K: Ord+Debug, V:Debug> Bst<K, V> {
+impl<K: Ord + Debug, V: Debug> Bst<K, V> {
     pub fn contains_key(&self, key: &K) -> bool {
         self.get(key).is_some()
     }
@@ -85,9 +84,8 @@ impl<K: Ord+Debug, V:Debug> Bst<K, V> {
         None
     }
 
+    #[allow(clippy::missing_panics_doc)]
     /// removes an element from the bst.
-    /// # Panics
-    /// the expect statements are safe to execute because of earlier checks
     pub fn remove(&mut self, key: &K) -> Option<V> {
         let mut cur: &mut Option<Box<Node<K, V>>> = &mut self.children;
         loop {
@@ -147,9 +145,9 @@ impl<K: Ord+Debug, V:Debug> Bst<K, V> {
                                     cur2 = &mut t.left;
                                 }
                             }
-                           let mut successor= cur2.take().expect("val");
-                           *cur2= successor.right.take();
-                           successor
+                            let mut successor = cur2.take().expect("val");
+                            *cur2 = successor.right.take();
+                            successor
                         } else {
                             unimplemented!()
                         }
@@ -394,26 +392,26 @@ mod tests {
     #[test]
     fn test_regression_remove() {
         let mut v: Bst<i16, String> = Bst::new();
-        for i in [5, 3,8,9] {
+        for i in [5, 3, 8, 9] {
             assert_eq!(v.insert(i, "value".to_string()), None);
         }
         assert_eq!(v.remove(&5), Some("value".to_string()));
         dbg!(&v.children);
         assert!(!v.contains_key(&5));
-        for i in [3, 8,9] {
+        for i in [3, 8, 9] {
             dbg!(&i);
             assert!(v.contains_key(&i));
         }
 
         assert_eq!(v.len(), 3);
- 
+
         let mut v: Bst<i16, String> = Bst::new();
         for i in [5, 3, 10, 7, 8] {
             assert_eq!(v.insert(i, "value".to_string()), None);
         }
         assert_eq!(v.remove(&5), Some("value".to_string()));
         assert!(!v.contains_key(&5));
-        for i in [3,10,7, 8] {
+        for i in [3, 10, 7, 8] {
             dbg!(&i);
             assert!(v.contains_key(&i));
         }
