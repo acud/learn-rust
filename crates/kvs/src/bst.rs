@@ -391,7 +391,6 @@ mod tests {
   
     #[test]
     fn always_on_drop_test() {
-        // 100k entries take about 24s to complete and so 1mil is expected 2400s = 40m
         let mut v: Bst<i32, String> = Bst::new();
         for i in 0..16330{
             v.insert(i, "value".to_string());
@@ -399,21 +398,7 @@ mod tests {
     }
 
     #[test]
-    fn test_regression_remove() {
-        let mut v: Bst<i16, String> = Bst::new();
-        for i in [5, 3, 8, 9] {
-            assert_eq!(v.insert(i, "value".to_string()), None);
-        }
-        assert_eq!(v.remove(&5), Some("value".to_string()));
-        dbg!(&v.children);
-        assert!(!v.contains_key(&5));
-        for i in [3, 8, 9] {
-            dbg!(&i);
-            assert!(v.contains_key(&i));
-        }
-
-        assert_eq!(v.len(), 3);
-
+    fn test_remove_inorder_subtree_reorg() {
         let mut v: Bst<i16, String> = Bst::new();
         for i in [5, 3, 10, 7, 8] {
             assert_eq!(v.insert(i, "value".to_string()), None);
@@ -421,10 +406,22 @@ mod tests {
         assert_eq!(v.remove(&5), Some("value".to_string()));
         assert!(!v.contains_key(&5));
         for i in [3, 10, 7, 8] {
-            dbg!(&i);
             assert!(v.contains_key(&i));
         }
-
         assert_eq!(v.len(), 4);
+    }
+
+    #[test]
+    fn test_remove_inorder_subtree() {
+        let mut v: Bst<i16, String> = Bst::new();
+        for i in [5, 3, 8, 9] {
+            assert_eq!(v.insert(i, "value".to_string()), None);
+        }
+        assert_eq!(v.remove(&5), Some("value".to_string()));
+        assert!(!v.contains_key(&5));
+        for i in [3, 8, 9] {
+            assert!(v.contains_key(&i));
+        }
+        assert_eq!(v.len(), 3);
     }
 }
