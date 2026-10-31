@@ -83,6 +83,9 @@ impl<K: Ord, V> Bst<K, V> {
         None
     }
 
+    /// removes an element from the bst.
+    /// # Panics
+    /// the expect statements are safe to execute because of earlier checks
     pub fn remove(&mut self, key: &K) -> Option<V> {
         let mut cur: &mut Option<Box<Node<K, V>>> = &mut self.children;
         loop {
@@ -92,7 +95,10 @@ impl<K: Ord, V> Bst<K, V> {
             } else {
                 return None;
             }
-            let single = cur.as_ref().expect("val").has_single_child();
+            let single = cur
+                .as_ref()
+                .expect("safe due to earlier check")
+                .has_single_child();
             match ord {
                 Ordering::Less => {
                     if let Some(v) = cur {
@@ -135,14 +141,11 @@ impl<K: Ord, V> Bst<K, V> {
                                         break;
                                     }
                                 }
-                                if go_left {
-                                    if let Some(t) = cur2 {
-                                        cur2 = &mut t.left
-                                    }
+                                if go_left && let Some(t) = cur2 {
+                                    cur2 = &mut t.left;
                                 }
                             }
-                            let ocr = cur2.take().expect("val");
-                            ocr
+                            cur2.take().expect("val")
                         } else {
                             unimplemented!()
                         }
@@ -169,7 +172,6 @@ impl<K: Ord, V> Bst<K, V> {
     }
 }
 
-#[derive(Debug)]
 struct Node<K, V> {
     key: K,
     value: V,
@@ -178,7 +180,7 @@ struct Node<K, V> {
 }
 
 impl<K, V> Node<K, V> {
-    pub fn has_single_child(&self) -> bool {
+    fn has_single_child(&self) -> bool {
         (self.left.is_some() && self.right.is_none())
             || (self.left.is_none() && self.right.is_some())
     }
@@ -339,7 +341,24 @@ mod tests {
 
         assert_eq!(v.len(), 2);
     }
+    #[test]
+    fn remove_child_simple_more() {
+        let mut v: Bst<i16, String> = Bst::new();
+        assert_eq!(v.insert(5, "value".to_string()), None);
+        assert_eq!(v.insert(3, "value".to_string()), None);
+        assert_eq!(v.insert(8, "value".to_string()), None);
+        assert_eq!(v.insert(4, "value".to_string()), None);
+        assert_eq!(v.insert(2, "value".to_string()), None);
+        assert_eq!(v.insert(7, "value".to_string()), None);
+        assert_eq!(v.insert(9, "value".to_string()), None);
+        assert_eq!(v.remove(&5), Some("value".to_string()));
+        assert!(!v.contains_key(&5));
+        for i in [3, 8, 4, 2, 7, 9] {
+            assert!(v.contains_key(&i));
+        }
 
+        assert_eq!(v.len(), 6);
+    }
     #[test]
     fn remove_child_with_right_subtree() {
         let mut v: Bst<i16, String> = Bst::new();
