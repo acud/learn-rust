@@ -328,7 +328,7 @@ mod tests {
         assert_eq!(v.len(), 2);
     }
 
-    //#[test]
+    #[test]
     fn remove_child_with_right_subtree() {
         let mut v: Bst<i16, String> = Bst::new();
         assert_eq!(v.insert(10, "value".to_string()), None);
