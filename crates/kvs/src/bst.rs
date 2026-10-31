@@ -148,7 +148,7 @@ impl<K: Ord+Debug, V:Debug> Bst<K, V> {
                                 }
                             }
                            let mut successor= cur2.take().expect("val");
-                           _ = mem::replace(cur2, successor.right.take());
+                           *cur2= successor.right.take();
                            successor
                         } else {
                             unimplemented!()
@@ -160,17 +160,8 @@ impl<K: Ord+Debug, V:Debug> Bst<K, V> {
                         self.len -= 1;
                         return Some(old.value);
                     }
-
-                    dbg!(&oo);
-                    oo.left = cur.as_deref_mut().unwrap().left.take().or(oo.left);
-
-                    dbg!(&oo);
-                    if oo.right.is_some() {
-                        let g = oo.right.take();
-                    }
+                    oo.left = cur.as_deref_mut().unwrap().left.take();
                     oo.right = cur.as_deref_mut().unwrap().right.take();
-
-                    dbg!(&oo);
                     let old = cur.replace(oo).unwrap();
                     self.len -= 1;
                     return Some(old.value);
