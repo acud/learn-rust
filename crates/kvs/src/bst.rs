@@ -189,24 +189,24 @@ impl<K, V> Node<K, V> {
     }
 }
 
-//impl<K, V> Drop for Bst<K, V> {
-    //fn drop(&mut self) {
-        //let root = self.children.take();
-        //let mut v = vec![];
-        //if let Some(elem) = root {
-            //v.push(elem);
-        //}
+impl<K, V> Drop for Bst<K, V> {
+    fn drop(&mut self) {
+        let root = self.children.take();
+        let mut v = vec![];
+        if let Some(elem) = root {
+            v.push(elem);
+        }
 
-        //while let Some(mut elem) = v.pop() {
-            //if elem.left.is_some() {
-                //v.push(elem.left.take().expect("safe to pop"));
-            //}
-            //if elem.right.is_some() {
-                //v.push(elem.right.take().expect("safe to pop"));
-            //}
-        //}
-    //}
-//}
+        while let Some(mut elem) = v.pop() {
+            if elem.left.is_some() {
+                v.push(elem.left.take().expect("safe to pop"));
+            }
+            if elem.right.is_some() {
+                v.push(elem.right.take().expect("safe to pop"));
+            }
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
