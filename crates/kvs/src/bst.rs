@@ -84,7 +84,10 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
         None
     }
 
-    #[allow(clippy::missing_panics_doc)]
+    #[expect(
+        clippy::missing_panics_doc,
+        reason = "the possible panics are internal invariants that callers cannot reach"
+    )]
     /// removes an element from the bst.
     pub fn remove(&mut self, key: &K) -> Option<V> {
         let mut cur: &mut Option<Box<Node<K, V>>> = &mut self.children;
@@ -111,53 +114,40 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
                 }
             }
         }
-        let cc = cur.take().expect("should have value");
-        let mut single = false;
-        let oo: Box<Node<K, V>> = match (cc.left, cc.right) {
-            (None, None) => {
-                let ret = cc.value;
-                self.len -= 1;
-                return Some(ret);
-            }
-            (Some(v), None) => {
-                single = true;
-                v
-            }
-            (None, Some(v)) => {
-                single = true;
-                v
-            }
+        let cc = cur
+            .take()
+            .expect("guaranteed to have a value because of the loop");
+        let oo: Option<Box<Node<K, V>>> = match (cc.left, cc.right) {
+            (None, None) => None,
+            (Some(v), None) | (None, Some(v)) => Some(v),
             (Some(l), Some(mut r)) => {
                 if r.left.is_none() {
                     r.left = Some(l);
-                    r
+                    Some(r)
                 } else {
                     // try to find the next in order on the right
                     let mut cur2 = &mut r.left;
                     loop {
-                        if cur2.is_some() && cur2.as_deref().unwrap().left.is_some() {
+                        if cur2.as_ref().is_some_and(|x| x.left.is_some()) {
+                            // needed because of borrowck and is guaranteed to have a  value due to the
+                            // check above
                             cur2 = &mut cur2.as_deref_mut().unwrap().left;
                         } else {
                             break;
                         }
                     }
-                    let mut successor = cur2.take().unwrap();
-                    if let Some(v) = successor.right.take() {
-                        *cur2 = Some(v)
-                    }
+                    let mut successor = cur2
+                        .take()
+                        .expect("guaranteed to have a value because of the loop");
+                    *cur2 = successor.right.take();
                     successor.left = Some(l);
                     successor.right = Some(r);
-                    successor
+                    Some(successor)
                 }
             }
         };
-        if single {
-            *cur = Some(oo);
-            self.len -= 1;
-            return Some(cc.value);
-        }
 
-        *cur = Some(oo);
+        *cur = oo;
         self.len -= 1;
         Some(cc.value)
     }
