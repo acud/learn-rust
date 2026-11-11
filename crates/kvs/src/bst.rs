@@ -111,53 +111,55 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
                 }
             }
         }
-        let mut cc = cur.take().expect("should have value");
-        if cc.left.is_none() && cc.right.is_none() {
-            // ret can never be None here so decrementing is fine although the map()
-            // can return a None if take() returns that. this is safe because of the Some check in
-            // the top of the loop
-            let ret = cc.value;
-            self.len -= 1;
-            return Some(ret);
-        }
+        let cc = cur.take().expect("should have value");
         let mut single = false;
-        let mut oo: Box<Node<K, V>> = if cc.left.is_some() && cc.right.is_none() {
-            single = true;
-            cc.left.take().expect("safe due to earlier check")
-        } else if cc.left.is_none() && cc.right.is_some() {
-            single = true;
-            cc.right.take().expect("safe due to earlier check")
-        } else {
-            // node has two children
-            // try to find the next in order on the right
-            let mut cur2 = &mut cc.right;
-            loop {
-                let mut go_left = false;
-                if let Some(vvv) = cur2 {
-                    if vvv.left.is_some() {
-                        go_left = true;
-                    } else {
-                        break;
+        let oo: Box<Node<K, V>> = match (cc.left, cc.right) {
+            (None, None) => {
+                let ret = cc.value;
+                self.len -= 1;
+                return Some(ret);
+            }
+            (Some(v), None) => {
+                single = true;
+                v
+            }
+            (None, Some(v)) => {
+                single = true;
+                v
+            }
+            (Some(l), Some(mut r)) => {
+                if r.left.is_none() {
+                    r.left = Some(l);
+                    r
+                } else {
+                    // try to find the next in order on the right
+                    let mut cur2 = &mut r.left;
+                    loop {
+                        if cur2.is_some() && cur2.as_deref().unwrap().left.is_some() {
+                            cur2 = &mut cur2.as_deref_mut().unwrap().left;
+                        } else {
+                            break;
+                        }
                     }
-                }
-                if go_left && let Some(t) = cur2 {
-                    cur2 = &mut t.left;
+                    let mut successor = cur2.take().unwrap();
+                    if let Some(v) = successor.right.take() {
+                        *cur2 = Some(v)
+                    }
+                    successor.left = Some(l);
+                    successor.right = Some(r);
+                    successor
                 }
             }
-            let mut successor = cur2.take().expect("safe due to earlier check");
-            *cur2 = successor.right.take();
-            successor
         };
         if single {
             *cur = Some(oo);
             self.len -= 1;
             return Some(cc.value);
         }
-        oo.left = cc.left.take();
-        oo.right = cc.right.take();
-       *cur = Some(oo);
+
+        *cur = Some(oo);
         self.len -= 1;
-        return Some(cc.value);
+        Some(cc.value)
     }
 }
 
