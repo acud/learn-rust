@@ -421,8 +421,8 @@ mod tests {
             parent_left = Box::new(Node {
                 key: i,
                 value: "value".to_string(),
-                left: None,
-                right: Some(parent_left),
+                left: Some(parent_left),
+                right: None,
             });
         }
         parent.left = Some(parent_left);

@@ -79,3 +79,21 @@ Newest entry at the bottom. Each entry: date, step, scores (Correctness / Tests 
   3. `remove`: `#[allow(clippy::missing_panics_doc)]` silences the question. Many expect/unwrap and an `unimplemented!()` remain. Restructure so they're unnecessary, or document the real panic conditions.
   4. NOTES Q5 unchanged in substance: "2^n" is wrong (4x per doubling = O(n^2)), no O(n log n) comparison, release-speedup explanation still not right.
 - Outcome: **not passed**. Current step stays at 1.2.
+
+## 2026-11-11: Step 1.2 Remove and Drop (re-review 2)
+
+- Scores: Correctness 8 / Tests 8 / Idiom 8 / API 7 / Understanding 7. Overall 7.6 (B)
+- Tooling: build ok; 18/18 tests (0.19s); clippy pedantic clean; fmt clean; all committed. Red/green commits for both drop tests (Drop stashed in red).
+- Resolved: 1M test is a valid tree with len set; `remove` restructured (take the node, one match on the children pair, successor via slot cursor, two arms merged with `|`, single exit); `#[expect(..., reason)]` replaces the blanket allow; expect messages state invariants; Q5 now has O(n^2) and the compute-vs-memory-latency explanation.
+- Must fix:
+  1. `one_mil_both_sides_test`: the left subtree links by `right` with decreasing keys (right child < parent), the same invalid-tree problem fixed in the first 1M test.
+  2. NOTES Q5: "6 orders of magnitude" is wrong. Redo n^2/2 vs n log2 n at n = 1M.
+- Outcome: **not passed** (score is enough; two small must-fix items). Current step stays at 1.2.
+
+## 2026-11-11: Step 1.2 Remove and Drop (final)
+
+- Scores: Correctness 9 / Tests 8 / Idiom 8 / API 7 / Understanding 8. Overall 8.0 (B+)
+- Tooling: 18/18 tests; clippy pedantic and fmt clean (checked in re-review 2; only the test tree and NOTES changed since).
+- Resolved: both-sides drop test now links the left chain via `left` (valid BST); Q5 says ~4 orders of magnitude (n^2/2 = 5e11 vs n log2 n = 2e7, ~25,000x).
+- Carry-over (non-blocking): Q3 recursion depth wording, Q1 tail-call reason, Q2 niche optimization, Q4 name the loan; `Drop` is_some()+expect pairs could be `if let`; "n^2 for a linear change" should say "per doubling". Commit the fixes.
+- Outcome: **passed**. Current step moves to 1.3.
