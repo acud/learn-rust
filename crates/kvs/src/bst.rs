@@ -189,24 +189,24 @@ impl<K, V> Node<K, V> {
     }
 }
 
-impl<K, V> Drop for Bst<K, V> {
-    fn drop(&mut self) {
-        let root = self.children.take();
-        let mut v = vec![];
-        if let Some(elem) = root {
-            v.push(elem);
-        }
+//impl<K, V> Drop for Bst<K, V> {
+    //fn drop(&mut self) {
+        //let root = self.children.take();
+        //let mut v = vec![];
+        //if let Some(elem) = root {
+            //v.push(elem);
+        //}
 
-        while let Some(mut elem) = v.pop() {
-            if elem.left.is_some() {
-                v.push(elem.left.take().expect("safe to pop"));
-            }
-            if elem.right.is_some() {
-                v.push(elem.right.take().expect("safe to pop"));
-            }
-        }
-    }
-}
+        //while let Some(mut elem) = v.pop() {
+            //if elem.left.is_some() {
+                //v.push(elem.left.take().expect("safe to pop"));
+            //}
+            //if elem.right.is_some() {
+                //v.push(elem.right.take().expect("safe to pop"));
+            //}
+        //}
+    //}
+//}
 
 #[cfg(test)]
 mod tests {
@@ -380,23 +380,34 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "takes too long to complete"]
     fn one_mil_test() {
-        // 100k entries take about 24s to complete and so 1mil is expected 2400s = 40m
         let mut v: Bst<i32, String> = Bst::new();
+        let node = Box::new(Node {
+            key: 1_000_000,
+            value: "value".to_string(),
+            left: None,
+            right: None,
+        });
+        let mut parent = Box::new(Node {
+            key: 999_999,
+            value: "value".to_string(),
+            left: None,
+            right: Some(node),
+        });
+
         for i in 0..1_000_000 {
-            v.insert(i, "value".to_string());
+            parent = Box::new(Node {
+                key: i,
+                value: "value".to_string(),
+                left: None,
+                right: Some(parent),
+            });
         }
-    }
-  
-    #[test]
-    fn always_on_drop_test() {
-        let mut v: Bst<i32, String> = Bst::new();
-        for i in 0..16330{
-            v.insert(i, "value".to_string());
-        }
+
+        v.children = Some(parent);
     }
 
+  
     #[test]
     fn test_remove_inorder_subtree_reorg() {
         let mut v: Bst<i16, String> = Bst::new();
