@@ -95,10 +95,6 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
             } else {
                 return None;
             }
-            let single = cur
-                .as_ref()
-                .expect("safe due to earlier check")
-                .has_single_child();
             match ord {
                 Ordering::Less => {
                     if let Some(v) = cur {
@@ -106,63 +102,7 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
                     }
                 }
                 Ordering::Equal => {
-                    let cc = cur.as_ref()?;
-                    if cc.left.is_none() && cc.right.is_none() {
-                        // ret can never be None here so decrementing is fine although the map()
-                        // can return a None if take() returns that. this is safe because of the Some check in
-                        // the top of the loop
-                        let ret = cur.take().map(|o| o.value);
-                        self.len -= 1;
-                        return ret;
-                    }
-                    let mut oo: Box<Node<K, V>> = if cc.left.is_some() && cc.right.is_none() {
-                        cur.as_deref_mut()
-                            .expect("safe due to earlier check")
-                            .left
-                            .take()
-                            .expect("safe due to earlier check")
-                    } else if cc.left.is_none() && cc.right.is_some() {
-                        cur.as_deref_mut()
-                            .expect("safe due to earlier check")
-                            .right
-                            .take()
-                            .expect("safe due to earlier check")
-                    } else {
-                        // node has two children
-                        // try to find the next in order on the right
-                        if let Some(i) = cur {
-                            let mut cur2 = &mut i.right;
-                            loop {
-                                let mut go_left = false;
-                                if let Some(vvv) = cur2 {
-                                    if vvv.left.is_some() {
-                                        go_left = true;
-                                    } else {
-                                        break;
-                                    }
-                                }
-                                if go_left && let Some(t) = cur2 {
-                                    cur2 = &mut t.left;
-                                }
-                            }
-                            let mut successor = cur2.take().expect("safe due to earlier check");
-                            *cur2 = successor.right.take();
-                            successor
-                        } else {
-                            unimplemented!()
-                        }
-                    };
-                    dbg!(&oo);
-                    if single {
-                        let old = cur.replace(oo).unwrap();
-                        self.len -= 1;
-                        return Some(old.value);
-                    }
-                    oo.left = cur.as_deref_mut().unwrap().left.take();
-                    oo.right = cur.as_deref_mut().unwrap().right.take();
-                    let old = cur.replace(oo).unwrap();
-                    self.len -= 1;
-                    return Some(old.value);
+                    break;
                 }
                 Ordering::Greater => {
                     if let Some(v) = cur {
@@ -171,6 +111,53 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
                 }
             }
         }
+        let mut cc = cur.take().expect("should have value");
+        if cc.left.is_none() && cc.right.is_none() {
+            // ret can never be None here so decrementing is fine although the map()
+            // can return a None if take() returns that. this is safe because of the Some check in
+            // the top of the loop
+            let ret = cc.value;
+            self.len -= 1;
+            return Some(ret);
+        }
+        let mut single = false;
+        let mut oo: Box<Node<K, V>> = if cc.left.is_some() && cc.right.is_none() {
+            single = true;
+            cc.left.take().expect("safe due to earlier check")
+        } else if cc.left.is_none() && cc.right.is_some() {
+            single = true;
+            cc.right.take().expect("safe due to earlier check")
+        } else {
+            // node has two children
+            // try to find the next in order on the right
+            let mut cur2 = &mut cc.right;
+            loop {
+                let mut go_left = false;
+                if let Some(vvv) = cur2 {
+                    if vvv.left.is_some() {
+                        go_left = true;
+                    } else {
+                        break;
+                    }
+                }
+                if go_left && let Some(t) = cur2 {
+                    cur2 = &mut t.left;
+                }
+            }
+            let mut successor = cur2.take().expect("safe due to earlier check");
+            *cur2 = successor.right.take();
+            successor
+        };
+        if single {
+            *cur = Some(oo);
+            self.len -= 1;
+            return Some(cc.value);
+        }
+        oo.left = cc.left.take();
+        oo.right = cc.right.take();
+       *cur = Some(oo);
+        self.len -= 1;
+        return Some(cc.value);
     }
 }
 
@@ -180,13 +167,6 @@ struct Node<K, V> {
     value: V,
     left: Option<Box<Node<K, V>>>,
     right: Option<Box<Node<K, V>>>,
-}
-
-impl<K, V> Node<K, V> {
-    fn has_single_child(&self) -> bool {
-        (self.left.is_some() && self.right.is_none())
-            || (self.left.is_none() && self.right.is_some())
-    }
 }
 
 impl<K, V> Drop for Bst<K, V> {
@@ -395,9 +375,9 @@ mod tests {
             right: Some(node),
         });
 
-        for i in 0..1_000_000 {
+        for i in 0..999_998 {
             parent = Box::new(Node {
-                key: i,
+                key: 999_998 - i,
                 value: "value".to_string(),
                 left: None,
                 right: Some(parent),
@@ -405,6 +385,7 @@ mod tests {
         }
 
         v.children = Some(parent);
+        v.len = 1_000_000;
     }
 
     #[test]

@@ -67,3 +67,15 @@ Newest entry at the bottom. Each entry: date, step, scores (Correctness / Tests 
   5. NOTES Q5: "2^n" is wrong, your own data is 4x per doubling = O(n^2). Add the O(n log n) comparison and the real release timing explanation (pointer chasing / cache misses).
   6. Commit NOTES; no more "green something" messages.
 - Outcome: **not passed**. Current step stays at 1.2.
+
+## 2026-11-10: Step 1.2 Remove and Drop (re-review)
+
+- Scores: Correctness 7 / Tests 7 / Idiom 5 / API 7 / Understanding 7. Overall 6.6 (C+)
+- Tooling: build ok; 17/17 tests (1M test now always on, 0.36s); clippy pedantic clean; fmt clean.
+- Resolved: successor right-subtree bug (both regression shapes tested); 1M degenerate test built directly in O(n), red commit = test with Drop stashed; NOTES Q3 (LIFO end, O(n) front removal, d+1 vs (n+1)/2, degenerate peak 1).
+- Must fix:
+  1. 1M test builds an invalid tree: keys ascend toward the root along right links (right child < parent), 999_999 appears twice, and `len` is 0 for a million-node tree.
+  2. Still no drop test with depth on both sides of a node.
+  3. `remove`: `#[allow(clippy::missing_panics_doc)]` silences the question. Many expect/unwrap and an `unimplemented!()` remain. Restructure so they're unnecessary, or document the real panic conditions.
+  4. NOTES Q5 unchanged in substance: "2^n" is wrong (4x per doubling = O(n^2)), no O(n log n) comparison, release-speedup explanation still not right.
+- Outcome: **not passed**. Current step stays at 1.2.
