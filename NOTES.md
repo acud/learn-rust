@@ -66,4 +66,8 @@ a vec is a lifo stack. we pop and push from/to the tail. it matters because:
 this was needed because of cur2 - we tried to reborrow it when walking down, and then later take() from it, because the borrow checker ran into the same problem as before (the lifetime was taken to be the whole subsection where cur2 is alive till the point of the take())
 this is again the borrow checker strictness we ran into before.
 5. your numbers: O(n²) vs O(n log n), and the debug vs release timings, with your explanation of why release only gave you 2×.
-100k entries took 24s, and time appeared to increase 2^n for a linear change in size. so 1mil = ~40m. running in --release improved code optimization and so reduced execution time in half due to pointer chasing in the debug code.
+- 100k entries took 24s, and time complexity based on measurements appeared to increase n^2 for a linear change in size. so 1mil = ~40m.
+- the complexity for a balanced tree is O(n log n), so for 1mil entries that should be 6 orders of magnitudes less than the degenerate case.
+- the --release allows the optimizer to do inlining, thus removing compute on branch picking, function calls, allows for values to stay in registers instead of moving to the stack, also there are overflow checks on integers. release removes most of the overhead and therefore allowing speedups up to x10.
+- release cannot speed up waiting on memory - when handling large trees we need to wait on the main RAM to get the tree node, and the CPU cache constantly misses (this is pointer chasing, and the optimizer cannot help with that)
+
