@@ -55,10 +55,15 @@ i solved it by implementing a simple stack to which we pop the current node's ch
 moves the value out of the place and leaves a None.
 since an option's value is either a zero or the address of the value, then it just leaves a zero behind and takes ownership over the memory for the newly created variable.
 3. which end of the Vec you pop from, whether it matters, and how big the Vec gets compared with the recursion depth;
-a vec is a lifo stack. so we pop from the head, not the tail. i guess it matters because:
-if we pop from the head, then we replace the head with at most 2 elements. if we pop from the tail, we keep growing the vector. for a degenerate tree then it means that the vec is at most with length N where N is tree element length
+a vec is a lifo stack. we pop and push from/to the tail. it matters because:
+- if we remove from the head then the operation costs O(n). 
+- pushing and popping from the tail means the ops cost O(1).
+- because we pop from the tail, we traverse the tree on one side, causing the size of the vec to be d+1 at most before leaves start to get dropped
+- if we would pop with a FIFO queue, it would mean we would essentially have to hold the entire bottom level of the tree before elements start dropping, so holding (n+1)/2 elements all at once (500k in the case of 1mil).
+- for degenerate trees, both FIFO and LIFO peak at one element in the vec
+- recursive drop needs all elements on the stack all at once, that's why we get a stack overflow.
 4. the borrow-checker verdict on the go_left flag: one sentence on why the flag fixed it, and whether it was the checker's limit or your code;
 this was needed because of cur2 - we tried to reborrow it when walking down, and then later take() from it, because the borrow checker ran into the same problem as before (the lifetime was taken to be the whole subsection where cur2 is alive till the point of the take())
 this is again the borrow checker strictness we ran into before.
 5. your numbers: O(n²) vs O(n log n), and the debug vs release timings, with your explanation of why release only gave you 2×.
-100k entries took 24s, and time appeared to increase 2^n for a linear change in size. so 1mil = ~40m. running in --release improved code optimization and so reduced execution time in half due to memory heaviness in the code.
+100k entries took 24s, and time appeared to increase 2^n for a linear change in size. so 1mil = ~40m. running in --release improved code optimization and so reduced execution time in half due to pointer chasing in the debug code.

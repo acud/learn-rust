@@ -407,7 +407,6 @@ mod tests {
         v.children = Some(parent);
     }
 
-  
     #[test]
     fn test_remove_inorder_subtree_reorg() {
         let mut v: Bst<i16, String> = Bst::new();
