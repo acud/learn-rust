@@ -161,24 +161,24 @@ struct Node<K, V> {
     right: Option<Box<Node<K, V>>>,
 }
 
-impl<K, V> Drop for Bst<K, V> {
-    fn drop(&mut self) {
-        let root = self.children.take();
-        let mut v = vec![];
-        if let Some(elem) = root {
-            v.push(elem);
-        }
+//impl<K, V> Drop for Bst<K, V> {
+//fn drop(&mut self) {
+//let root = self.children.take();
+//let mut v = vec![];
+//if let Some(elem) = root {
+//v.push(elem);
+//}
 
-        while let Some(mut elem) = v.pop() {
-            if elem.left.is_some() {
-                v.push(elem.left.take().expect("safe to pop"));
-            }
-            if elem.right.is_some() {
-                v.push(elem.right.take().expect("safe to pop"));
-            }
-        }
-    }
-}
+//while let Some(mut elem) = v.pop() {
+//if elem.left.is_some() {
+//v.push(elem.left.take().expect("safe to pop"));
+//}
+//if elem.right.is_some() {
+//v.push(elem.right.take().expect("safe to pop"));
+//}
+//}
+//}
+//}
 
 #[cfg(test)]
 mod tests {
@@ -375,6 +375,57 @@ mod tests {
                 right: Some(parent),
             });
         }
+
+        v.children = Some(parent);
+        v.len = 1_000_000;
+    }
+
+    #[test]
+    fn one_mil_both_sides_test() {
+        let mut v: Bst<i32, String> = Bst::new();
+        let node = Box::new(Node {
+            key: 1_000_000,
+            value: "value".to_string(),
+            left: None,
+            right: None,
+        });
+        let mut parent = Box::new(Node {
+            key: 999_999,
+            value: "value".to_string(),
+            left: None,
+            right: Some(node),
+        });
+
+        for i in 0..499_998 {
+            parent = Box::new(Node {
+                key: 999_998 - i,
+                value: "value".to_string(),
+                left: None,
+                right: Some(parent),
+            });
+        }
+
+        let node = Box::new(Node {
+            key: 0,
+            value: "value".to_string(),
+            left: None,
+            right: None,
+        });
+        let mut parent_left = Box::new(Node {
+            key: 1,
+            value: "value".to_string(),
+            left: Some(node),
+            right: None,
+        });
+        for i in 2..500_000 {
+            parent_left = Box::new(Node {
+                key: i,
+                value: "value".to_string(),
+                left: None,
+                right: Some(parent_left),
+            });
+        }
+        parent.left = Some(parent_left);
 
         v.children = Some(parent);
         v.len = 1_000_000;
