@@ -156,20 +156,21 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
 
 struct Iter<'a, K, V> {
     bst: &'a Bst<K, V>,
-    stack: Vec<&'a Box<Node<K, V>>>,
+    stack: Vec<&'a Node<K, V>>,
 }
 
 impl<'a, K, V> Iter<'a, K, V> {
     pub fn new(bst: &'a Bst<K, V>) -> Self {
-        let cur: &Box<Node<K, V>> = bst.children.as_ref().unwrap();
         let mut stack = vec![];
-        Iter::left_spine(cur, &mut stack);
+        if let Some(v) = bst.children.as_deref() {
+            Iter::left_spine(v, &mut stack);
+        }
         Self { bst, stack }
     }
 
     /// returns the left spine for a given node
-    fn left_spine(node: &'a Box<Node<K, V>>, stack: &mut Vec<&'a Box<Node<K, V>>>) {
-        let mut cur: &Box<Node<K, V>> = node;
+    fn left_spine(node: &'a Node<K, V>, stack: &mut Vec<&'a Node<K, V>>) {
+        let mut cur: &Node<K, V> = node;
         loop {
             // go down all the way
             if cur.left.is_some() {
@@ -189,7 +190,7 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
     fn next(&mut self) -> Option<Self::Item> {
         let v = self.stack.pop()?;
         if v.right.is_some() {
-            let cur: &Box<Node<K, V>> = v.right.as_ref().unwrap();
+            let cur: &Node<K, V> = v.right.as_deref().unwrap();
             Iter::left_spine(cur, &mut self.stack);
         }
 
@@ -228,6 +229,12 @@ impl<K, V> Drop for Bst<K, V> {
 mod tests {
     use super::*;
 
+    #[test]
+    fn test_iter_empty() {
+        let v: Bst<i32, String> = Bst::new();
+        let mut iter = Iter::new(&v);
+        assert_eq!(iter.next(), None);
+    }
     #[test]
     fn test_iter_new() {
         let mut v: Bst<i32, String> = Bst::new();
