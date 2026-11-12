@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 use std::fmt::Debug;
-use std::mem;
 
 pub struct Bst<K, V> {
     children: Option<Box<Node<K, V>>>,
@@ -155,32 +154,31 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
 }
 
 struct Iter<'a, K, V> {
-    bst: &'a Bst<K, V>,
     stack: Vec<&'a Node<K, V>>,
 }
 
 impl<'a, K, V> Iter<'a, K, V> {
     pub fn new(bst: &'a Bst<K, V>) -> Self {
         let mut stack = vec![];
-        if let Some(v) = bst.children.as_deref() {
-            Iter::left_spine(v, &mut stack);
-        }
-        Self { bst, stack }
+        Iter::left_spine(bst.children.as_deref(), &mut stack);
+        Self { stack }
     }
 
     /// returns the left spine for a given node
-    fn left_spine(node: &'a Node<K, V>, stack: &mut Vec<&'a Node<K, V>>) {
-        let mut cur: &Node<K, V> = node;
-        loop {
-            // go down all the way
-            if cur.left.is_some() {
-                let next = cur.left.as_ref().unwrap();
-                let item = cur;
-                cur = next;
-                stack.push(item);
-            } else {
-                stack.push(cur);
-                break;
+    fn left_spine(node: Option<&'a Node<K, V>>, stack: &mut Vec<&'a Node<K, V>>) {
+        if let Some(node) = node {
+            let mut cur: &Node<K, V> = node;
+            loop {
+                // go down all the way
+                if cur.left.is_some() {
+                    let next = cur.left.as_ref().unwrap();
+                    let item = cur;
+                    cur = next;
+                    stack.push(item);
+                } else {
+                    stack.push(cur);
+                    break;
+                }
             }
         }
     }
@@ -189,10 +187,7 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
     type Item = (&'a K, &'a V);
     fn next(&mut self) -> Option<Self::Item> {
         let v = self.stack.pop()?;
-        if v.right.is_some() {
-            let cur: &Node<K, V> = v.right.as_deref().unwrap();
-            Iter::left_spine(cur, &mut self.stack);
-        }
+        Iter::left_spine(v.right.as_deref(), &mut self.stack);
 
         Some((&v.key, &v.value))
     }
