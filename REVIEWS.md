@@ -97,3 +97,10 @@ Newest entry at the bottom. Each entry: date, step, scores (Correctness / Tests 
 - Resolved: both-sides drop test now links the left chain via `left` (valid BST); Q5 says ~4 orders of magnitude (n^2/2 = 5e11 vs n log2 n = 2e7, ~25,000x).
 - Carry-over (non-blocking): Q3 recursion depth wording, Q1 tail-call reason, Q2 niche optimization, Q4 name the loan; `Drop` is_some()+expect pairs could be `if let`; "n^2 for a linear change" should say "per doubling". Commit the fixes.
 - Outcome: **passed**. Current step moves to 1.3.
+
+## 2026-11-11: Course re-plan (not a review)
+
+- About 20h spent over 26 days; 3 of 31 steps done. Projection was 8–10 months at ~5h/week.
+- Trimmed to a job-focused core: 2.1+2.2 merged, 3.2+3.3 merged, 5.x condensed, 1.5 reduced to insert/successor. Phase 1–5 renumbered (old 2.3→2.2, 2.4→2.3, 2.6→2.4, 3.4→3.3).
+- Moved to "Later: extras": sealed traits, macro_rules, full benchmarks, docs/CI, proc macros. 1.6 unsafe kept.
+- Review rules changed in CLAUDE.md: max 3 NOTES questions, narrow must-fix, one re-review max, auto-escalating hints, answer before probing.

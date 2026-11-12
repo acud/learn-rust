@@ -12,6 +12,8 @@
 
 A box gets ticked only when a review passes (7/10 or better, no must-fix items left). Scores and details live in `REVIEWS.md`.
 
+The course is trimmed to the job-relevant core (re-planned 2026-11-11). Topics you can pick up on the job live in **Later: extras** at the end.
+
 - **Phase 0**
   - [x] 0.1 Skeleton
 - **Phase 1: Ownership**
@@ -19,21 +21,17 @@ A box gets ticked only when a review passes (7/10 or better, no must-fix items l
   - [x] 1.2 Remove and Drop
   - [ ] 1.3 Iterators with lifetimes
   - [ ] 1.4 Parent pointers: the cycle
-  - [ ] 1.5 Arena tree
-  - [ ] 1.6 (optional, after phase 4) unsafe
+  - [ ] 1.5 Arena tree (reduced scope)
+  - [ ] 1.6 unsafe (after phase 4)
 - **Phase 2: Traits**
-  - [ ] 2.1 The `Engine` trait
-  - [ ] 2.2 Injected time and I/O
-  - [ ] 2.3 Property tests
-  - [ ] 2.4 Newtypes and typestate
-  - [ ] 2.5 Sealed traits
-  - [ ] 2.6 `?Sized`, `Borrow` and DSTs
-  - [ ] 2.7 Declarative macros
+  - [ ] 2.1 The `Engine` trait and an injected clock
+  - [ ] 2.2 Property tests
+  - [ ] 2.3 Newtypes and typestate
+  - [ ] 2.4 `?Sized`, `Borrow` and DSTs
 - **Phase 3: Persistence**
   - [ ] 3.1 Append-only log
-  - [ ] 3.2 Recovery
-  - [ ] 3.3 Compaction
-  - [ ] 3.4 Errors done properly
+  - [ ] 3.2 Recovery and compaction
+  - [ ] 3.3 Errors done properly
 - **Phase 4: Async**
   - [ ] 4.0 The `Send`/`Sync`/`'static` kata
   - [ ] 4.1 The server and codec
@@ -43,15 +41,15 @@ A box gets ticked only when a review passes (7/10 or better, no must-fix items l
   - [ ] 4.5 Backpressure
 - **Phase 5: Production quality**
   - [ ] 5.1 Tracing
-  - [ ] 5.2 Benchmarks
+  - [ ] 5.2 Actor vs lock benchmark
   - [ ] 5.3 Concurrent reads
-  - [ ] 5.4 API review, docs, CI
-  - [ ] 5.5 Client and integration test
-- **Phase 6: Procedural macros**
-  - [ ] 6.1 The macro crate
-  - [ ] 6.2 `#[derive(Command)]`
-  - [ ] 6.3 Errors as compile errors
-  - [ ] 6.4 (optional) Attribute macro
+  - [ ] 5.4 Client, integration test, light API review
+- **Later: extras** (optional, no order, pick up if there's time and curiosity)
+  - [ ] X.1 Sealed traits
+  - [ ] X.2 Declarative macros
+  - [ ] X.3 Full benchmark suite and allocation hunting
+  - [ ] X.4 Docs, API Guidelines checklist, CI
+  - [ ] X.5 Procedural macros (four parts)
 
 ---
 
@@ -120,12 +118,12 @@ This is where lifetimes, smart pointers and the borrow checker's limits stop bei
 - Write a test that **proves no leak**: a `Drop` counter (an `AtomicUsize` the node increments on drop). Then deliberately make the parent `Rc` instead of `Weak` and watch the test fail.
 - Questions: When does `RefCell` panic, and why is that a runtime check instead of compile time? Why is `Rc` not `Send`? What does that mean for phase 4?
 
-**1.5: Arena tree: the idiomatic answer.** Same parent-aware tree, but nodes live in a `Vec<Node>` and links are `NodeId(u32)` newtypes. Compare the three versions in `NOTES.md`: ergonomics, performance, safety, what each one makes impossible.
-- Questions: What did you trade away (hint: what happens on remove)? Why do big Rust projects (rustc, petgraph, ECS engines) prefer this?
+**1.5: Arena tree: the idiomatic answer (reduced scope, ~3–5h).** The same parent-aware tree, but nodes live in a `Vec<Node>` and links are `NodeId(u32)` newtypes. Implement only `insert` and `successor`, and reuse the 1.4 tests. No `remove`.
+- Questions: Compare the three versions (Box, Rc/Weak, arena) on ergonomics, performance and safety. What did you trade away, and what would `remove` cost you here? Why do big Rust projects (rustc, petgraph, ECS engines) prefer this?
 
-**1.6 (optional, later): unsafe.** A doubly linked list or a parent-pointer tree with raw pointers, verified under Miri. Do this one only after phase 4.
+**1.6: unsafe (do it after phase 4).** A doubly linked list or a parent-pointer tree with raw pointers, verified under Miri.
 
-**Compiler caveats you'll meet in phase 1:** conditional returns of borrows (the NLL "problem case #3"), `&mut` reborrowing in loops, two-phase borrows, `Box` patterns and moving out of a `Box`, the drop check, and why `Option<Box<T>>` is the same size as a pointer (niche optimisation). You'll also meet `Box<T>` and `&T` accepting unsized `T`, which sets up the `?Sized` work in step 2.6.
+**Compiler caveats you'll meet in phase 1:** conditional returns of borrows (the NLL "problem case #3"), `&mut` reborrowing in loops, two-phase borrows, `Box` patterns and moving out of a `Box`, the drop check, and why `Option<Box<T>>` is the same size as a pointer (niche optimisation). You'll also meet `Box<T>` and `&T` accepting unsized `T`, which sets up the `?Sized` work in step 2.4.
 
 ---
 
@@ -133,28 +131,17 @@ This is where lifetimes, smart pointers and the borrow checker's limits stop bei
 
 The Go habit to unlearn: "accept an interface, mock it in tests". In Rust the default is **generics over a trait**, with test doubles as concrete types and `dyn` only when you need heterogeneous collections or want to cut compile time.
 
-**2.1: The `Engine` trait.** `get`, `set`, `remove`. Implement it for an in-memory engine (backed by your arena BST). Write the **contract tests once** as a generic function `fn engine_contract<E: Engine>(make: impl Fn() -> E)` and run them against every implementation.
-- Questions: `&self` or `&mut self` on `set`? (You will revisit this answer in phase 4, so keep a record of your reasoning.) What are associated types for, and should `Engine` have any?
+**2.1: The `Engine` trait and an injected clock.** `get`, `set`, `remove`. Implement it for an in-memory engine (backed by your arena BST). Write the **contract tests once** as a generic function `fn engine_contract<E: Engine>(make: impl Fn() -> E)` and run them against every implementation. Then add a `Clock` trait for TTL expiry, with a `FakeClock` you advance by hand in tests, and make the store generic: `Store<E: Engine, C: Clock = SystemClock>`.
+- Questions: `&self` or `&mut self` on `set`? (You will revisit this answer in phase 4, so keep a record of your reasoning.) Should `Engine` have associated types? How does the default type parameter keep the public API clean, and what would `dyn Clock` cost you instead?
 
-**2.2: Injected time and I/O.** A `Clock` trait for TTL expiry. In tests, a `FakeClock` you advance by hand. Make the store generic: `Store<E: Engine, C: Clock = SystemClock>`.
-- Questions: How does a default type parameter keep the public API clean? When would you reach for `dyn Clock` instead, and what does it cost you?
-
-**2.3: Property tests.** Use `proptest` to check your BST against `std::collections::BTreeMap` as a model: random sequences of insert/remove/get, which must always agree. Also use it to test the BST invariant itself.
+**2.2: Property tests.** Use `proptest` to check your BST against `std::collections::BTreeMap` as a model: random sequences of insert/remove/get, which must always agree. Also use it to test the BST invariant itself.
 - Expect it to find a bug. Write the shrunk failing case as a regular test before you fix it.
 
-**2.4: Newtypes and typestate.** `Key` and `Value` newtypes with validation (max size), using `TryFrom`. A `StoreBuilder` whose `build()` only exists once a path has been set (typestate via a generic marker type).
-- Questions: What's the zero-cost argument for newtypes? What's the cost in ergonomics, and which traits (`AsRef`, `Borrow`, `Deref`?) are right or wrong to implement for them? `Deref` on a newtype is a known anti-pattern. Explain why.
+**2.3: Newtypes and typestate.** `Key` and `Value` newtypes with validation (max size), using `TryFrom`. A `StoreBuilder` whose `build()` only exists once a path has been set (typestate via a generic marker type).
+- Questions: What's the zero-cost argument for newtypes? Which traits (`AsRef`, `Borrow`, `Deref`?) are right or wrong to implement for them? Why is `Deref` on a newtype a known anti-pattern?
 
-**2.5: Sealed traits and extension traits.** Seal `Engine` so external crates can't implement it, or decide not to and say why.
-
-**2.6: `?Sized`, `Borrow` and dynamically sized types.** Make `Bst<String, V>::get` accept a `&str` without allocating, the same way `HashMap` and `BTreeMap` do (`K: Borrow<Q>, Q: Ord + ?Sized`). Then write a generic helper that works on `&str`, `&[u8]` and `&dyn Display` alike. Finally, add a provided method to a trait that must return `Self` by value, and make sure the trait still works as `dyn`.
-- Questions (2.6): What is the implicit bound on every generic parameter, and why does `T: ?Sized` *remove* a bound instead of adding one? Why is `Self` `?Sized` by default in traits, but `T` is `Sized` by default in generics? What is a fat pointer, what's in its second word for `&str` and for `&dyn Trait`, and why can a DST only exist behind a pointer? What does `where Self: Sized` on a trait method do to object safety? Why does `Box<dyn Trait>` mean `Box<dyn Trait + 'static>`, and when does that bite you?
-
-**2.7: Declarative macros (`macro_rules!`).** Two macros, each TDD'd:
-1. `engine_tests!(name, constructor)`, which expands into a test module running your generic contract suite from 2.1 as *separately named* `#[test]` functions, so a failure says exactly which engine and which case broke.
-2. A `kvs!{ "a" => 1, "b" => 2 }` literal that builds a store, accepts a trailing comma, and fails to compile on an odd number of tokens.
-- Use `cargo expand` to look at what you generated.
-- Questions: What are macro hygiene's rules for local variables versus items? What's the difference between the `expr`, `tt`, `ident` and `literal` fragment specifiers, and why can't you follow an `expr` with any token you like? Why do exported macros use `$crate::`? When is a macro the wrong tool compared to a generic function?
+**2.4: `?Sized`, `Borrow` and dynamically sized types.** Make `Bst<String, V>::get` accept a `&str` without allocating, the same way `HashMap` and `BTreeMap` do (`K: Borrow<Q>, Q: Ord + ?Sized`). Then write a generic helper that works on `&str`, `&[u8]` and `&dyn Display` alike.
+- Questions: Why does `T: ?Sized` *remove* a bound instead of adding one? What is a fat pointer, and what's in its second word for `&str` and for `&dyn Trait`? Why does `Box<dyn Trait>` mean `Box<dyn Trait + 'static>`, and when does that bite you?
 
 ---
 
@@ -163,12 +150,10 @@ The Go habit to unlearn: "accept an interface, mock it in tests". In Rust the de
 **3.1: Append-only log.** A Bitcask-style design: every `set`/`remove` is appended to a log file as a serialized record (`serde` + `bincode` or your own framing with a length prefix and a CRC). An in-memory index maps key → file offset.
 - TDD with `tempfile`. Write generic code over `Read + Seek` / `Write` so tests can use `Cursor<Vec<u8>>` and need no filesystem at all.
 
-**3.2: Recovery.** Reopen and rebuild the index. Handle a truncated last record (a crash mid-write): detect it, truncate, carry on.
-- Questions: Where do you need `fsync`, and what does `BufWriter` do to your crash guarantees? What happens if a `BufWriter` is dropped with data in it and the flush fails?
+**3.2: Recovery and compaction.** Reopen and rebuild the index. Handle a truncated last record (a crash mid-write): detect it, truncate, carry on. Then compact: rewrite live records into a new file and swap atomically (write, fsync, rename).
+- Questions: Where do you need `fsync`, and what does `BufWriter` do to your crash guarantees? What happens if a `BufWriter` is dropped with data in it and the flush fails? Why is write-fsync-rename atomic, and what does it still not protect against?
 
-**3.3: Compaction.** Rewrite live records into a new file and swap atomically (write, fsync, rename).
-
-**3.4: Errors done properly.** Review every `unwrap` you've written. Classify each error: recoverable for the caller, a bug (panic is fine), or I/O. Add context without losing the source chain.
+**3.3: Errors done properly.** Review every `unwrap` you've written. Classify each error: recoverable for the caller, a bug (panic is fine), or I/O. Add context without losing the source chain.
 
 ---
 
@@ -185,7 +170,7 @@ You've used tokio. Now we take apart why it demands what it demands.
 6. A `Box<dyn Error>` returned from a spawned task (why you need `Box<dyn Error + Send + Sync>`)
 7. Spawning a closure that captures `&self`
 
-- Questions: State precisely what `Send` and `Sync` mean in one sentence each. Why is `&T: Send` iff `T: Sync`? Why does `spawn` require `'static` when the task "obviously" finishes before main ends? Why does `std::thread::scope` not need it, and why can't tokio offer the same thing safely? What *is* a future, structurally (the state machine), and why does that make "held across an await" the thing that matters?
+- Questions: State precisely what `Send` and `Sync` mean in one sentence each, and why `&T: Send` iff `T: Sync`. Why does `spawn` require `'static`, and why can `std::thread::scope` avoid it when tokio can't? What *is* a future structurally (the state machine), and why does that make "held across an await" the thing that matters?
 
 **4.1: The server.** `kvs-server` listens on TCP. Define a wire protocol (a length-prefixed frame or a RESP subset) using a `tokio_util::codec::{Decoder, Encoder}`. TDD the codec as **pure, sync unit tests** over `BytesMut`, with no sockets.
 
@@ -193,7 +178,7 @@ You've used tokio. Now we take apart why it demands what it demands.
 - (a) `Arc<Mutex<E>>`: which mutex, std or tokio? (The tokio docs have a strong opinion. Read it.)
 - (b) Interior mutability inside the engine so it's `&self` + `Sync` (revisit your answer from 2.1)
 - (c) An actor: one task owns the engine and talks over an `mpsc` channel, with `oneshot` for replies
-- Implement (c) and one of (a)/(b). Benchmark both in phase 5.
+- Implement (c) and one of (a)/(b). You'll benchmark them in 5.2.
 
 **4.3: Testing async without sleeping.** Use `#[tokio::test(start_paused = true)]` with `tokio::time::advance` for TTL. Test the server through `tokio::io::duplex` instead of real sockets, by keeping the connection handler generic over `AsyncRead + AsyncWrite + Unpin`.
 - Questions: What is `Unpin`, and why does this bound show up here? What does `Pin` guarantee, and to whom?
@@ -207,28 +192,35 @@ You've used tokio. Now we take apart why it demands what it demands.
 
 ## Phase 5: Production quality
 
-**5.1:** `tracing` spans per connection and per request, with structured fields.
-**5.2:** `criterion` benchmarks: BST vs `BTreeMap`, actor vs lock, `get` path allocation counts. Remove allocations you didn't mean to make.
-**5.3:** Concurrent reads without a global lock (`RwLock`, sharding, or `arc-swap` for the index). Optionally use `loom` to test a small concurrent piece.
-**5.4:** API review against the Rust API Guidelines checklist, rustdoc with runnable examples (doctests are tests), and `cargo deny` / `cargo audit` in CI.
-**5.5:** A client crate and an integration test that spins up the real server on port 0.
+**5.1: Tracing.** `tracing` spans per connection and per request, with structured fields.
+**5.2: Actor vs lock benchmark.** One `criterion` benchmark comparing your two sharing designs from 4.2. Explain the result.
+**5.3: Concurrent reads.** Concurrent reads without a global lock (`RwLock`, sharding, or `arc-swap` for the index).
+**5.4: Client, integration test, light API review.** A client crate, and an integration test that spins up the real server on port 0. Then a quick pass over your public API: naming, `#[must_use]`, what's `pub` that shouldn't be.
 
 ---
 
-## Phase 6: Procedural macros
+## Later: extras
 
-By now you have hand-written encode/decode code for every protocol command in 4.1. You'll replace it with a derive, which is how real crates like `serde` and `clap` work.
+Optional, in no particular order. These are real skills, but easy to pick up on the job. Same review rules apply if you do one.
 
-**6.1: The macro crate.** A `crates/kvs-macros` crate with `proc-macro = true`, depending on `syn`, `quote` and `proc-macro2`. Start with a derive that does nothing but compile, and a `trybuild` test proving it.
-- Questions: Why must a proc macro live in its own crate? What's a `TokenStream`, and why does `proc-macro2` exist alongside `proc_macro`?
+**X.1: Sealed traits and extension traits.** Seal `Engine` so external crates can't implement it, or decide not to and say why.
 
-**6.2: `#[derive(Command)]`.** Generates the encode and decode impls for a protocol command struct or enum. Support a field attribute such as `#[command(rename = "SET")]`. Your existing codec tests from 4.1 must still pass unchanged, which proves the derive is behaviour-preserving.
+**X.2: Declarative macros (`macro_rules!`).** Two macros, each TDD'd:
+1. `engine_tests!(name, constructor)`, which expands into a test module running your generic contract suite from 2.1 as *separately named* `#[test]` functions, so a failure says exactly which engine and which case broke.
+2. A `kvs!{ "a" => 1, "b" => 2 }` literal that builds a store, accepts a trailing comma, and fails to compile on an odd number of tokens.
+- Use `cargo expand` to look at what you generated.
+- Questions: What are macro hygiene's rules for local variables versus items? Why can't you follow an `expr` fragment with any token you like? When is a macro the wrong tool compared to a generic function?
 
-**6.3: Errors as compile errors.** Unsupported input (a union, a generic you can't handle, an unknown attribute) must produce a `syn::Error` with a span pointing at the offending token, never a panic. Test each case with `trybuild` compile-fail tests and committed `.stderr` snapshots.
-- Questions: Why is panicking in a proc macro a bad user experience? What do spans control, and what does `quote_spanned!` change?
+**X.3: Full benchmarks.** `criterion` benchmarks for BST vs `BTreeMap` and `get` path allocation counts. Remove allocations you didn't mean to make. Optionally use `loom` to test a small concurrent piece.
 
-**6.4 (optional): an attribute macro.** `#[instrumented]` that wraps a function in a `tracing` span, and works on both sync and `async fn`.
-- Questions: How do you handle generics and `where` clauses in generated impls (`split_for_impl`)? What does an attribute macro do to compile times and IDE experience, and when would you not write one?
+**X.4: Docs and CI.** API review against the Rust API Guidelines checklist, rustdoc with runnable examples (doctests are tests), and `cargo deny` / `cargo audit` in CI.
+
+**X.5: Procedural macros.** By now you have hand-written encode/decode code for every protocol command in 4.1. Replace it with a derive, which is how `serde` and `clap` work.
+1. **The macro crate.** `crates/kvs-macros` with `proc-macro = true`, depending on `syn`, `quote` and `proc-macro2`. Start with a derive that does nothing but compile, and a `trybuild` test proving it.
+2. **`#[derive(Command)]`.** Generates encode and decode impls for a protocol command struct or enum. Support a field attribute such as `#[command(rename = "SET")]`. Your codec tests from 4.1 must still pass unchanged.
+3. **Errors as compile errors.** Unsupported input (a union, a generic you can't handle, an unknown attribute) must produce a `syn::Error` with a span pointing at the offending token, never a panic. Test with `trybuild` compile-fail tests and committed `.stderr` snapshots.
+4. **An attribute macro.** `#[instrumented]` that wraps a function in a `tracing` span, on both sync and `async fn`.
+- Questions: Why must a proc macro live in its own crate? Why is panicking in a proc macro a bad user experience? What do spans control, and what does `quote_spanned!` change?
 
 ---
 
@@ -256,5 +248,5 @@ By now you have hand-written encode/decode code for every protocol command in 4.
 - The Tokio tutorial, especially "Shared state" and "Select" (phase 4)
 - Alice Ryhl's blog posts "Actors with Tokio" and "Async: What is blocking?" (phase 4)
 - The Rustonomicon, chapters on ownership, subtyping and variance (phase 1.6)
-- *The Little Book of Rust Macros* (step 2.7)
-- David Tolnay's `proc-macro-workshop` repo on GitHub, the `builder` and `debug` projects (phase 6)
+- *The Little Book of Rust Macros* (extra X.2)
+- David Tolnay's `proc-macro-workshop` repo on GitHub, the `builder` and `debug` projects (extra X.5)
