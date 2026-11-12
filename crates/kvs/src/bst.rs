@@ -181,9 +181,25 @@ impl<'a, K, V> Iter<'a, K, V> {
 impl<'a, K, V> Iterator for Iter<'a, K, V> {
     type Item = (&'a K, &'a V);
     fn next(&mut self) -> Option<Self::Item> {
-        let ret = self.bst.children.as_deref()?;
+        //let ret = self.bst.children.as_deref()?;
+        let v = self.stack.pop()?;
+        if v.right.is_some() {
+            let mut cur: &Box<Node<K, V>> = v.right.as_ref().unwrap();
+            loop {
+                // go down all the way
+                if cur.left.is_some() {
+                    let next = cur.left.as_ref().unwrap();
+                    let item = cur;
+                    cur = next;
+                    self.stack.push(item);
+                } else {
+                    self.stack.push(cur);
+                    break;
+                }
+            }
+        }
 
-        Some((&ret.key, &ret.value))
+        Some((&v.key, &v.value))
     }
 }
 
@@ -221,9 +237,25 @@ mod tests {
     #[test]
     fn test_iter_new() {
         let mut v: Bst<i32, String> = Bst::new();
-        v.insert(5, "val".to_string());
-        let mut i = Iter::new(&v);
-        assert_eq!(i.next(), Some((&5, &"val".to_string())));
+        for i in 0..5 {
+            v.insert(i, "val".to_string());
+        }
+        let mut iter = Iter::new(&v);
+        for i in 0..5 {
+            assert_eq!(iter.next(), Some((&i, &"val".to_string())));
+        }
+    }
+
+    #[test]
+    fn test_iter_descending_new() {
+        let mut v: Bst<i32, String> = Bst::new();
+        for i in 0..6 {
+            v.insert(5 - i, "val".to_string());
+        }
+        let mut iter = Iter::new(&v);
+        for i in 0..6 {
+            assert_eq!(iter.next(), Some((&i, &"val".to_string())));
+        }
     }
 
     #[test]
