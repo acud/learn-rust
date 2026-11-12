@@ -12,7 +12,7 @@ impl<K, V> Default for Bst<K, V> {
     }
 }
 
-impl<K, V> Bst<K, V> {
+impl<'a, K, V> Bst<K, V> {
     #[must_use]
     pub fn new() -> Self {
         Bst {
@@ -29,6 +29,10 @@ impl<K, V> Bst<K, V> {
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len == 0
+    }
+
+    pub fn iter(&'a self) -> Iter<'a, K, V> {
+        Iter::new(self)
     }
 }
 
@@ -153,7 +157,7 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
     }
 }
 
-struct Iter<'a, K, V> {
+pub struct Iter<'a, K, V> {
     stack: Vec<&'a Node<K, V>>,
 }
 
@@ -227,7 +231,7 @@ mod tests {
     #[test]
     fn test_iter_empty() {
         let v: Bst<i32, String> = Bst::new();
-        let mut iter = Iter::new(&v);
+        let mut iter = v.iter();
         assert_eq!(iter.next(), None);
     }
     #[test]
@@ -236,7 +240,7 @@ mod tests {
         for i in 0..5 {
             v.insert(i, "val".to_string());
         }
-        let mut iter = Iter::new(&v);
+        let mut iter = v.iter();
         for i in 0..5 {
             assert_eq!(iter.next(), Some((&i, &"val".to_string())));
         }
@@ -248,7 +252,7 @@ mod tests {
         for i in 0..6 {
             v.insert(5 - i, "val".to_string());
         }
-        let mut iter = Iter::new(&v);
+        let mut iter = v.iter();
         for i in 0..6 {
             assert_eq!(iter.next(), Some((&i, &"val".to_string())));
         }
