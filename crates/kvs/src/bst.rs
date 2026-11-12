@@ -259,6 +259,20 @@ mod tests {
     }
 
     #[test]
+    fn test_iter_for() {
+        let mut v: Bst<i32, String> = Bst::new();
+        for i in 0..6 {
+            v.insert(5 - i, "val".to_string());
+        }
+        let mut iter = v.iter();
+        let mut idx = 0;
+        for (a, b) in &v {
+            assert_eq!(iter.next(), Some((&idx, &"val".to_string())));
+            idx += 1;
+        }
+    }
+
+    #[test]
     fn test_new() {
         let v: Bst<String, String> = Bst::new();
 
