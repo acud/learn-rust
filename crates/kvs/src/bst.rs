@@ -167,6 +167,57 @@ impl<'a, K, V> IntoIterator for &'a Bst<K, V> {
     }
 }
 
+impl<K, V> IntoIterator for Bst<K, V> {
+    type Item = (K, V);
+    type IntoIter = IntoIter<K, V>;
+
+    // Required method
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter::new(self)
+    }
+}
+
+pub struct IntoIter<K, V> {
+    stack: Vec<Box<Node<K, V>>>,
+}
+impl<K, V> IntoIter<K, V> {
+    fn new(mut bst: Bst<K, V>) -> Self {
+        let mut stack: Vec<Box<Node<K, V>>> = vec![];
+        let tree = bst.children.take();
+        IntoIter::left_spine(tree, &mut stack);
+        Self { stack }
+    }
+
+    /// returns the left spine for a given node
+    fn left_spine(node: Option<Box<Node<K, V>>>, stack: &mut Vec<Box<Node<K, V>>>) {
+        if let Some(node) = node {
+            let mut cur: Box<Node<K, V>> = node;
+            loop {
+                // go down all the way
+                if cur.left.is_some() {
+                    let next = cur.left.take().unwrap();
+                    let item = cur;
+                    cur = next;
+                    stack.push(item);
+                } else {
+                    stack.push(cur);
+                    break;
+                }
+            }
+        }
+    }
+}
+impl<K, V> Iterator for IntoIter<K, V> {
+    type Item = (K, V);
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut v = self.stack.pop()?;
+        let tree = v.right.take();
+        IntoIter::left_spine(tree, &mut self.stack);
+
+        Some((v.key, v.value))
+    }
+}
+
 pub struct Iter<'a, K, V> {
     stack: Vec<&'a Node<K, V>>,
 }
@@ -274,14 +325,26 @@ mod tests {
         for i in 0..6 {
             v.insert(5 - i, "val".to_string());
         }
-        let mut iter = v.iter();
+        //let mut iter = v.iter();
         let mut idx = 0;
         for (a, b) in &v {
-            assert_eq!(iter.next(), Some((&idx, &"val".to_string())));
+            assert_eq!((a, b), (&idx, &"val".to_string()));
             idx += 1;
         }
     }
 
+    #[test]
+    fn test_into_iter_for() {
+        let mut v: Bst<i32, String> = Bst::new();
+        for i in 0..6 {
+            v.insert(5 - i, "val".to_string());
+        }
+        let mut idx = 0;
+        for (a, b) in v {
+            assert_eq!((a, b), (idx, "val".to_string()));
+            idx += 1;
+        }
+    }
     #[test]
     fn test_new() {
         let v: Bst<String, String> = Bst::new();
