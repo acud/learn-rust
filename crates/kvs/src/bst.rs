@@ -161,7 +161,15 @@ struct Iter<'a, K, V> {
 
 impl<'a, K, V> Iter<'a, K, V> {
     pub fn new(bst: &'a Bst<K, V>) -> Self {
-        let mut cur: &Box<Node<K, V>> = bst.children.as_ref().unwrap();
+        let cur: &Box<Node<K, V>> = bst.children.as_ref().unwrap();
+        let mut iter = Self { bst, stack: vec![] };
+        iter.stack = iter.left_spine(cur);
+        iter
+    }
+
+    /// returns the left spine for a given node
+    fn left_spine(&mut self, node: &'a Box<Node<K, V>>) -> Vec<&'a Box<Node<K, V>>> {
+        let mut cur: &Box<Node<K, V>> = node;
         let mut stack = vec![];
         loop {
             // go down all the way
@@ -175,28 +183,17 @@ impl<'a, K, V> Iter<'a, K, V> {
                 break;
             }
         }
-        Self { bst, stack }
+        stack
     }
 }
 impl<'a, K, V> Iterator for Iter<'a, K, V> {
     type Item = (&'a K, &'a V);
     fn next(&mut self) -> Option<Self::Item> {
-        //let ret = self.bst.children.as_deref()?;
         let v = self.stack.pop()?;
         if v.right.is_some() {
-            let mut cur: &Box<Node<K, V>> = v.right.as_ref().unwrap();
-            loop {
-                // go down all the way
-                if cur.left.is_some() {
-                    let next = cur.left.as_ref().unwrap();
-                    let item = cur;
-                    cur = next;
-                    self.stack.push(item);
-                } else {
-                    self.stack.push(cur);
-                    break;
-                }
-            }
+            let cur: &Box<Node<K, V>> = v.right.as_ref().unwrap();
+            let mut stack = self.left_spine(cur);
+            self.stack.append(&mut stack);
         }
 
         Some((&v.key, &v.value))
