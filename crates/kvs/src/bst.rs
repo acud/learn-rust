@@ -162,15 +162,14 @@ struct Iter<'a, K, V> {
 impl<'a, K, V> Iter<'a, K, V> {
     pub fn new(bst: &'a Bst<K, V>) -> Self {
         let cur: &Box<Node<K, V>> = bst.children.as_ref().unwrap();
-        let mut iter = Self { bst, stack: vec![] };
-        iter.stack = iter.left_spine(cur);
-        iter
+        let mut stack = vec![];
+        Iter::left_spine(cur, &mut stack);
+        Self { bst, stack }
     }
 
     /// returns the left spine for a given node
-    fn left_spine(&mut self, node: &'a Box<Node<K, V>>) -> Vec<&'a Box<Node<K, V>>> {
+    fn left_spine(node: &'a Box<Node<K, V>>, stack: &mut Vec<&'a Box<Node<K, V>>>) {
         let mut cur: &Box<Node<K, V>> = node;
-        let mut stack = vec![];
         loop {
             // go down all the way
             if cur.left.is_some() {
@@ -183,7 +182,6 @@ impl<'a, K, V> Iter<'a, K, V> {
                 break;
             }
         }
-        stack
     }
 }
 impl<'a, K, V> Iterator for Iter<'a, K, V> {
@@ -192,8 +190,7 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
         let v = self.stack.pop()?;
         if v.right.is_some() {
             let cur: &Box<Node<K, V>> = v.right.as_ref().unwrap();
-            let mut stack = self.left_spine(cur);
-            self.stack.append(&mut stack);
+            Iter::left_spine(cur, &mut self.stack);
         }
 
         Some((&v.key, &v.value))
