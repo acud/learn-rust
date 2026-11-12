@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use std::fmt::Debug;
+use std::mem;
 
 pub struct Bst<K, V> {
     children: Option<Box<Node<K, V>>>,
@@ -155,18 +156,33 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
 
 struct Iter<'a, K, V> {
     bst: &'a Bst<K, V>,
+    stack: Vec<&'a Box<Node<K, V>>>,
 }
 
 impl<'a, K, V> Iter<'a, K, V> {
     pub fn new(bst: &'a Bst<K, V>) -> Self {
-        Self { bst }
+        let mut cur: &Box<Node<K, V>> = bst.children.as_ref().unwrap();
+        let mut stack = vec![];
+        loop {
+            // go down all the way
+            if cur.left.is_some() {
+                let next = cur.left.as_ref().unwrap();
+                let item = cur;
+                cur = next;
+                stack.push(item);
+            } else {
+                stack.push(cur);
+                break;
+            }
+        }
+        Self { bst, stack }
     }
 }
 impl<'a, K, V> Iterator for Iter<'a, K, V> {
     type Item = (&'a K, &'a V);
     fn next(&mut self) -> Option<Self::Item> {
-        let ret = &self.bst.children;
-        let ret = ret.as_deref()?;
+        let ret = self.bst.children.as_deref()?;
+
         Some((&ret.key, &ret.value))
     }
 }
