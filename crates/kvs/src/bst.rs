@@ -157,12 +157,22 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
     }
 }
 
+impl<'a, K, V> IntoIterator for &'a Bst<K, V> {
+    type Item = (&'a K, &'a V);
+    type IntoIter = Iter<'a, K, V>;
+
+    // Required method
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 pub struct Iter<'a, K, V> {
     stack: Vec<&'a Node<K, V>>,
 }
 
 impl<'a, K, V> Iter<'a, K, V> {
-    pub fn new(bst: &'a Bst<K, V>) -> Self {
+    fn new(bst: &'a Bst<K, V>) -> Self {
         let mut stack = vec![];
         Iter::left_spine(bst.children.as_deref(), &mut stack);
         Self { stack }
