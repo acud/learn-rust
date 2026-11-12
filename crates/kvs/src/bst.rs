@@ -154,18 +154,20 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
 }
 
 struct Iter<'a, K, V> {
-    bst: Bst<K, V>,
+    bst: &'a Bst<K, V>,
 }
 
-impl<K, V> Iter<K, V> {
-    pub fn new(bst: Bst<K, V>) -> Self {
+impl<'a, K, V> Iter<'a, K, V> {
+    pub fn new(bst: &'a Bst<K, V>) -> Self {
         Self { bst }
     }
 }
-impl<K, V> Iterator for Iter<K, V> {
-    type Item = (K, V);
+impl<'a, K, V> Iterator for Iter<'a, K, V> {
+    type Item = (&'a K, &'a V);
     fn next(&mut self) -> Option<Self::Item> {
-        None
+        let ret = &self.bst.children;
+        let ret = ret.as_deref()?;
+        Some((&ret.key, &ret.value))
     }
 }
 
@@ -199,6 +201,14 @@ impl<K, V> Drop for Bst<K, V> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_iter_new() {
+        let mut v: Bst<i32, String> = Bst::new();
+        v.insert(5, "val".to_string());
+        let mut i = Iter::new(&v);
+        assert_eq!(i.next(), Some((&5, &"val".to_string())));
+    }
 
     #[test]
     fn test_new() {
