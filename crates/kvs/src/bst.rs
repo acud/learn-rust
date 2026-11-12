@@ -153,6 +153,22 @@ impl<K: Ord + Debug, V: Debug> Bst<K, V> {
     }
 }
 
+struct Iter<'a, K, V> {
+    bst: Bst<K, V>,
+}
+
+impl<K, V> Iter<K, V> {
+    pub fn new(bst: Bst<K, V>) -> Self {
+        Self { bst }
+    }
+}
+impl<K, V> Iterator for Iter<K, V> {
+    type Item = (K, V);
+    fn next(&mut self) -> Option<Self::Item> {
+        None
+    }
+}
+
 #[derive(Debug)]
 struct Node<K, V> {
     key: K,
