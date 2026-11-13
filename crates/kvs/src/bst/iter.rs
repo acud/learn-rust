@@ -203,12 +203,12 @@ mod tests {
         }
         let val = "val".to_string();
         let exp = vec![
-            ((&0, &val)),
-            ((&1, &val)),
-            ((&2, &val)),
-            ((&3, &val)),
-            ((&4, &val)),
-            ((&5, &val)),
+            (&0, &val),
+            (&1, &val),
+            (&2, &val),
+            (&3, &val),
+            (&4, &val),
+            (&5, &val),
         ];
         assert_eq!(vals, exp);
     }
@@ -224,12 +224,12 @@ mod tests {
             vals.push(i);
         }
         let exp = vec![
-            ((0, "val".to_string())),
-            ((1, "val".to_string())),
-            ((2, "val".to_string())),
-            ((3, "val".to_string())),
-            ((4, "val".to_string())),
-            ((5, "val".to_string())),
+            (0, "val".to_string()),
+            (1, "val".to_string()),
+            (2, "val".to_string()),
+            (3, "val".to_string()),
+            (4, "val".to_string()),
+            (5, "val".to_string()),
         ];
         assert_eq!(vals, exp);
     }
@@ -253,12 +253,12 @@ mod tests {
         }
         let val = "vv".to_string();
         let exp = vec![
-            ((&0, &val)),
-            ((&1, &val)),
-            ((&2, &val)),
-            ((&3, &val)),
-            ((&4, &val)),
-            ((&5, &val)),
+            (&0, &val),
+            (&1, &val),
+            (&2, &val),
+            (&3, &val),
+            (&4, &val),
+            (&5, &val),
         ];
         assert_eq!(vals, exp);
     }
@@ -317,7 +317,7 @@ mod tests {
         }
 
         let mut vals = vec![];
-        for i in v.iter_mut() {
+        for i in &mut v {
             vals.push(i);
         }
         let mut val = (
@@ -330,13 +330,13 @@ mod tests {
             "val".to_string(),
         );
         let exp = vec![
-            ((&3, &mut val.0)),
-            ((&5, &mut val.1)),
-            ((&7, &mut val.2)),
-            ((&8, &mut val.3)),
-            ((&9, &mut val.4)),
-            ((&10, &mut val.5)),
-            ((&15, &mut val.6)),
+            (&3, &mut val.0),
+            (&5, &mut val.1),
+            (&7, &mut val.2),
+            (&8, &mut val.3),
+            (&9, &mut val.4),
+            (&10, &mut val.5),
+            (&15, &mut val.6),
         ];
         assert_eq!(vals, exp);
     }
