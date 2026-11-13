@@ -3,7 +3,7 @@ use std::fmt::Debug;
 
 mod iter;
 
-use iter::{Iter, IterMut, IntoIter};
+use iter::{IntoIter, Iter, IterMut};
 
 pub struct Bst<K, V> {
     children: Option<Box<Node<K, V>>>,
