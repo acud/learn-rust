@@ -8,7 +8,7 @@
 
 ## Progress
 
-**Current step:** 1.3
+**Current step:** 1.4
 
 A box gets ticked only when a review passes (7/10 or better, no must-fix items left). Scores and details live in `REVIEWS.md`.
 
@@ -19,7 +19,7 @@ The course is trimmed to the job-relevant core (re-planned 2026-11-11). Topics y
 - **Phase 1: Ownership**
   - [x] 1.1 Owned BST
   - [x] 1.2 Remove and Drop
-  - [ ] 1.3 Iterators with lifetimes
+  - [x] 1.3 Iterators with lifetimes
   - [ ] 1.4 Parent pointers: the cycle
   - [ ] 1.5 Arena tree (reduced scope)
   - [ ] 1.6 unsafe (after phase 4)

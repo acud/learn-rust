@@ -6,7 +6,7 @@ pub struct IterMut<'a, K, V> {
 type StackItem<'a, K, V> = (&'a K, &'a mut V, Option<&'a mut Node<K, V>>);
 
 impl<'a, K, V> IterMut<'a, K, V> {
-    pub fn new(bst: &'a mut Bst<K, V>) -> Self {
+    pub(super) fn new(bst: &'a mut Bst<K, V>) -> Self {
         let mut stack = vec![];
         IterMut::left_spine(bst.children.as_deref_mut(), &mut stack);
         Self { stack }
@@ -46,7 +46,7 @@ pub struct IntoIter<K, V> {
     stack: Vec<Box<Node<K, V>>>,
 }
 impl<K, V> IntoIter<K, V> {
-    pub fn new(mut bst: Bst<K, V>) -> Self {
+    pub(super) fn new(mut bst: Bst<K, V>) -> Self {
         let mut stack: Vec<Box<Node<K, V>>> = vec![];
         let tree = bst.children.take();
         IntoIter::left_spine(tree, &mut stack);
@@ -101,7 +101,7 @@ pub struct Iter<'a, K, V> {
 }
 
 impl<'a, K, V> Iter<'a, K, V> {
-    pub fn new(bst: &'a Bst<K, V>) -> Self {
+    pub(super) fn new(bst: &'a Bst<K, V>) -> Self {
         let mut stack = vec![];
         Iter::left_spine(bst.children.as_deref(), &mut stack);
         Self { stack }
@@ -138,6 +138,7 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
 
 #[cfg(test)]
 mod tests {
+    use super::super::test_util;
     use super::*;
     #[test]
     fn test_iter_empty() {
@@ -265,13 +266,13 @@ mod tests {
 
     #[test]
     fn one_mil_iter_drop_test() {
-        let v = one_mil_right_tree();
+        let v = test_util::one_mil_right_tree();
         let _i = v.into_iter();
     }
 
     #[test]
     fn one_mil_half_consumed_iter_drop_test() {
-        let v = one_mil_right_tree();
+        let v = test_util::one_mil_right_tree();
         let mut i = v.into_iter();
         i.next();
         i.next();
@@ -279,13 +280,13 @@ mod tests {
 
     #[test]
     fn one_mil_both_sides_iter_drop_test() {
-        let v = one_mil_tree_both_sides();
+        let v = test_util::one_mil_tree_both_sides();
         let _i = v.into_iter();
     }
 
     #[test]
     fn one_mil_both_sides_half_consumed_iter_drop_test() {
-        let v = one_mil_tree_both_sides();
+        let v = test_util::one_mil_tree_both_sides();
         let mut i = v.into_iter();
         i.next();
         i.next();
@@ -402,85 +403,5 @@ mod tests {
             (15, val.6),
         ];
         assert_eq!(vals, exp);
-    }
-
-    fn one_mil_right_tree() -> Bst<i32, String> {
-        let mut v: Bst<i32, String> = Bst::new();
-        let node = Box::new(Node {
-            key: 1_000_000,
-            value: "value".to_string(),
-            left: None,
-            right: None,
-        });
-        let mut parent = Box::new(Node {
-            key: 999_999,
-            value: "value".to_string(),
-            left: None,
-            right: Some(node),
-        });
-
-        for i in 0..999_998 {
-            parent = Box::new(Node {
-                key: 999_998 - i,
-                value: "value".to_string(),
-                left: None,
-                right: Some(parent),
-            });
-        }
-
-        v.children = Some(parent);
-        v.len = 1_000_000;
-        v
-    }
-
-    fn one_mil_tree_both_sides() -> Bst<i32, String> {
-        let mut v: Bst<i32, String> = Bst::new();
-        let node = Box::new(Node {
-            key: 1_000_000,
-            value: "value".to_string(),
-            left: None,
-            right: None,
-        });
-        let mut parent = Box::new(Node {
-            key: 999_999,
-            value: "value".to_string(),
-            left: None,
-            right: Some(node),
-        });
-
-        for i in 0..499_998 {
-            parent = Box::new(Node {
-                key: 999_998 - i,
-                value: "value".to_string(),
-                left: None,
-                right: Some(parent),
-            });
-        }
-
-        let node = Box::new(Node {
-            key: 0,
-            value: "value".to_string(),
-            left: None,
-            right: None,
-        });
-        let mut parent_left = Box::new(Node {
-            key: 1,
-            value: "value".to_string(),
-            left: Some(node),
-            right: None,
-        });
-        for i in 2..500_000 {
-            parent_left = Box::new(Node {
-                key: i,
-                value: "value".to_string(),
-                left: Some(parent_left),
-                right: None,
-            });
-        }
-        parent.left = Some(parent_left);
-
-        v.children = Some(parent);
-        v.len = 1_000_000;
-        v
     }
 }

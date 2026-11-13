@@ -3,7 +3,7 @@ use std::fmt::Debug;
 
 mod iter;
 
-use iter::{IntoIter, Iter, IterMut};
+pub use iter::{IntoIter, Iter, IterMut};
 
 pub struct Bst<K, V> {
     children: Option<Box<Node<K, V>>>,
@@ -395,7 +395,49 @@ mod tests {
         assert_eq!(v.len(), 4);
     }
 
-    fn one_mil_right_tree() -> Bst<i32, String> {
+    #[test]
+    fn one_mil_test() {
+        let _v = test_util::one_mil_right_tree();
+    }
+
+    #[test]
+    fn one_mil_both_sides_test() {
+        let _v = test_util::one_mil_tree_both_sides();
+    }
+
+    #[test]
+    fn test_remove_inorder_subtree_reorg() {
+        let mut v: Bst<i16, String> = Bst::new();
+        for i in [5, 3, 10, 7, 8] {
+            assert_eq!(v.insert(i, "value".to_string()), None);
+        }
+        assert_eq!(v.remove(&5), Some("value".to_string()));
+        assert!(!v.contains_key(&5));
+        for i in [3, 10, 7, 8] {
+            assert!(v.contains_key(&i));
+        }
+        assert_eq!(v.len(), 4);
+    }
+
+    #[test]
+    fn test_remove_inorder_subtree() {
+        let mut v: Bst<i16, String> = Bst::new();
+        for i in [5, 3, 8, 9] {
+            assert_eq!(v.insert(i, "value".to_string()), None);
+        }
+        assert_eq!(v.remove(&5), Some("value".to_string()));
+        assert!(!v.contains_key(&5));
+        for i in [3, 8, 9] {
+            assert!(v.contains_key(&i));
+        }
+        assert_eq!(v.len(), 3);
+    }
+}
+
+#[cfg(test)]
+mod test_util {
+    use super::*;
+    pub(super) fn one_mil_right_tree() -> Bst<i32, String> {
         let mut v: Bst<i32, String> = Bst::new();
         let node = Box::new(Node {
             key: 1_000_000,
@@ -424,7 +466,7 @@ mod tests {
         v
     }
 
-    fn one_mil_tree_both_sides() -> Bst<i32, String> {
+    pub(super) fn one_mil_tree_both_sides() -> Bst<i32, String> {
         let mut v: Bst<i32, String> = Bst::new();
         let node = Box::new(Node {
             key: 1_000_000,
@@ -473,43 +515,5 @@ mod tests {
         v.children = Some(parent);
         v.len = 1_000_000;
         v
-    }
-
-    #[test]
-    fn one_mil_test() {
-        let _v = one_mil_right_tree();
-    }
-
-    #[test]
-    fn one_mil_both_sides_test() {
-        let _v = one_mil_tree_both_sides();
-    }
-
-    #[test]
-    fn test_remove_inorder_subtree_reorg() {
-        let mut v: Bst<i16, String> = Bst::new();
-        for i in [5, 3, 10, 7, 8] {
-            assert_eq!(v.insert(i, "value".to_string()), None);
-        }
-        assert_eq!(v.remove(&5), Some("value".to_string()));
-        assert!(!v.contains_key(&5));
-        for i in [3, 10, 7, 8] {
-            assert!(v.contains_key(&i));
-        }
-        assert_eq!(v.len(), 4);
-    }
-
-    #[test]
-    fn test_remove_inorder_subtree() {
-        let mut v: Bst<i16, String> = Bst::new();
-        for i in [5, 3, 8, 9] {
-            assert_eq!(v.insert(i, "value".to_string()), None);
-        }
-        assert_eq!(v.remove(&5), Some("value".to_string()));
-        assert!(!v.contains_key(&5));
-        for i in [3, 8, 9] {
-            assert!(v.contains_key(&i));
-        }
-        assert_eq!(v.len(), 3);
     }
 }

@@ -107,3 +107,12 @@ Newest entry at the bottom. Each entry: date, step, scores (Correctness / Tests 
 
 ## 2026-11-12: Policy change
 - Commit hygiene (messages, red/green/refactor rhythm, history) is no longer reviewed or graded. All earlier commit-related carry-overs are dropped.
+
+## 2026-11-13: Step 1.3 Iterators with lifetimes
+
+- Scores: Correctness 9 / Tests 8 / Idiom 7 / API 7 / Understanding 8. Overall 7.8 (B+)
+- Tooling: build ok; 32/32 tests (0.42s); clippy pedantic clean; fmt clean.
+- Done: `Iter`, `IterMut` (split borrows: stack holds `(&K, &mut V, Option<&mut Node>)`), `IntoIter` with iterative `Drop`; `IntoIterator` for `&Bst`, `&mut Bst`, `Bst`; 1M drop tests (unconsumed/half-consumed, chain and both-sides); subtree-shape tests with key-derived values for all three iterators.
+- Must fix: none.
+- Carry-over (non-blocking): `'a` declared on the `impl Bst` block instead of per method/elided; `is_some()`+`unwrap()` in all three `left_spine`s (a `while let` over the Option removes it); `IterMut` tuple fields `.0/.1/.2` vs a named struct; iterator types live in a private module and aren't re-exported, so users can't name them; `new` on iterators is `pub`; duplicated 1M test builders in mod.rs and iter.rs.
+- Outcome: **passed**. Current step moves to 1.4.
