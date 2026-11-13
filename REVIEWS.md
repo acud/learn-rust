@@ -104,3 +104,6 @@ Newest entry at the bottom. Each entry: date, step, scores (Correctness / Tests 
 - Trimmed to a job-focused core: 2.1+2.2 merged, 3.2+3.3 merged, 5.x condensed, 1.5 reduced to insert/successor. Phase 1–5 renumbered (old 2.3→2.2, 2.4→2.3, 2.6→2.4, 3.4→3.3).
 - Moved to "Later: extras": sealed traits, macro_rules, full benchmarks, docs/CI, proc macros. 1.6 unsafe kept.
 - Review rules changed in CLAUDE.md: max 3 NOTES questions, narrow must-fix, one re-review max, auto-escalating hints, answer before probing.
+
+## 2026-11-12: Policy change
+- Commit hygiene (messages, red/green/refactor rhythm, history) is no longer reviewed or graded. All earlier commit-related carry-overs are dropped.

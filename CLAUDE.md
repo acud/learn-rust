@@ -46,7 +46,7 @@ If no level is given, start with H1. If the student says they've been stuck for 
    - `cargo test --workspace` (or `cargo nextest run` once it's set up)
    - `cargo clippy --workspace --all-targets -- -W clippy::pedantic`
    - `cargo fmt --check`
-4. Check `git log` for the red / green / refactor commit rhythm. Tests should land before the code that makes them pass.
+4. Don't inspect or comment on git history, commit messages or commit granularity. The student knows TDD; grade Tests/TDD on the tests themselves (coverage, behaviour over implementation, naming).
 5. Grade out of 10 on each axis: **Correctness, Tests/TDD, Idiom, API design, Understanding**. Give an overall letter grade.
 6. Feedback format:
    - **What's good** (be specific, short)

@@ -68,12 +68,12 @@ The course is trimmed to the job-relevant core (re-planned 2026-11-11). Topics y
 | Axis | What I look for |
 |---|---|
 | Correctness | Tests pass, edge cases covered, no panics on bad input |
-| Tests / TDD | Tests came first (commit history shows it), test the behaviour instead of the implementation, have readable names |
+| Tests / TDD | Tests cover the behaviour (not the implementation), have readable names |
 | Idiom | Ownership chosen deliberately, no needless `clone()` / `unwrap()` / `Rc<RefCell>`, standard traits used where they fit |
 | API design | Types make invalid states unrepresentable, signatures are minimal and honest, follow the Rust API Guidelines |
 | Understanding | `NOTES.md` answers are correct and in your own words |
 
-**Rule:** commit at red, at green and at refactor (`git commit -m "red: ..."`). I will look at the history.
+**Commits:** your call. Git history and commit messages are not reviewed or graded.
 
 ---
 
