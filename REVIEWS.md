@@ -116,3 +116,9 @@ Newest entry at the bottom. Each entry: date, step, scores (Correctness / Tests 
 - Must fix: none.
 - Carry-over (non-blocking): `'a` declared on the `impl Bst` block instead of per method/elided; `is_some()`+`unwrap()` in all three `left_spine`s (a `while let` over the Option removes it); `IterMut` tuple fields `.0/.1/.2` vs a named struct; iterator types live in a private module and aren't re-exported, so users can't name them; `new` on iterators is `pub`; duplicated 1M test builders in mod.rs and iter.rs.
 - Outcome: **passed**. Current step moves to 1.4.
+
+## 2026-11-13: Step 1.3 carry-over follow-up (not graded)
+
+- Tooling: build ok; 32/32 tests; clippy pedantic clean; fmt clean.
+- Resolved: iterator types re-exported with `pub use`; iterator `new` is `pub(super)`; 1M builders moved to a shared `#[cfg(test)] mod test_util` used by both test modules.
+- Still open (non-blocking): `'a` on the `impl Bst` block; `is_some()`+`unwrap()` in the three `left_spine`s; `IterMut` tuple `.0/.1/.2`.
