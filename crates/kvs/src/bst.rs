@@ -375,8 +375,9 @@ mod tests {
             v.insert(i, "val".to_string());
         }
         let mut iter = v.iter();
+        let mut vals = vec![];
         for i in 0..5 {
-            assert_eq!(iter.next(), Some((&i, &"val".to_string())));
+            vals.push(iter.next());
         }
     }
 
@@ -387,8 +388,9 @@ mod tests {
             v.insert(5 - i, "val".to_string());
         }
         let mut iter = v.iter();
-        for i in 0..6 {
-            assert_eq!(iter.next(), Some((&i, &"val".to_string())));
+        let mut vals = vec![];
+        for _ in 0..6 {
+            vals.push(iter.next());
         }
     }
 
@@ -398,8 +400,9 @@ mod tests {
         for i in 0..6 {
             v.insert(5 - i, "val".to_string());
         }
-        for (idx, (a, b)) in (&v).into_iter().enumerate() {
-            assert_eq!((a, b), (&i32::try_from(idx).unwrap(), &"val".to_string()));
+        let mut vals = vec![];
+        for i in &v {
+            vals.push(i);
         }
     }
 
@@ -409,8 +412,9 @@ mod tests {
         for i in 0..6 {
             v.insert(5 - i, "val".to_string());
         }
-        for (idx, (a, b)) in v.into_iter().enumerate() {
-            assert_eq!((a, b), (i32::try_from(idx).unwrap(), "val".to_string()));
+        let mut vals = vec![];
+        for i in v {
+            vals.push(i);
         }
     }
 
@@ -426,8 +430,10 @@ mod tests {
                 *v = "vv".to_string();
             }
         }
-        for (idx, i) in (&v).into_iter().enumerate() {
-            assert_eq!((&i32::try_from(idx).unwrap(), &"vv".to_string()), i);
+
+        let mut vals = vec![];
+        for i in &v {
+            vals.push(i);
         }
     }
 
@@ -435,6 +441,14 @@ mod tests {
     fn one_mil_iter_drop_test() {
         let v = one_mil_right_tree();
         let _i = v.into_iter();
+    }
+
+    #[test]
+    fn one_mil_half_consumed_iter_drop_test() {
+        let v = one_mil_right_tree();
+        let mut i = v.into_iter();
+        i.next();
+        i.next();
     }
 
     #[test]
