@@ -311,9 +311,8 @@ mod tests {
     #[test]
     fn iter_mut_subtree_test() {
         let mut v: Bst<i32, String> = Bst::new();
-        let val = "val".to_string();
         for i in [10, 5, 15, 3, 8, 7, 9] {
-            v.insert(i, val.clone());
+            v.insert(i, i.to_string());
         }
 
         let mut vals = vec![];
@@ -321,13 +320,13 @@ mod tests {
             vals.push(i);
         }
         let mut val = (
-            "val".to_string(),
-            "val".to_string(),
-            "val".to_string(),
-            "val".to_string(),
-            "val".to_string(),
-            "val".to_string(),
-            "val".to_string(),
+            "3".to_string(),
+            "5".to_string(),
+            "7".to_string(),
+            "8".to_string(),
+            "9".to_string(),
+            "10".to_string(),
+            "15".to_string(),
         );
         let exp = vec![
             (&3, &mut val.0),
@@ -337,6 +336,70 @@ mod tests {
             (&9, &mut val.4),
             (&10, &mut val.5),
             (&15, &mut val.6),
+        ];
+        assert_eq!(vals, exp);
+    }
+
+    #[test]
+    fn iter_subtree_test() {
+        let mut v: Bst<i32, String> = Bst::new();
+        for i in [10, 5, 15, 3, 8, 7, 9] {
+            v.insert(i, i.to_string());
+        }
+
+        let mut vals = vec![];
+        for i in &v {
+            vals.push(i);
+        }
+        let val = (
+            "3".to_string(),
+            "5".to_string(),
+            "7".to_string(),
+            "8".to_string(),
+            "9".to_string(),
+            "10".to_string(),
+            "15".to_string(),
+        );
+        let exp = vec![
+            (&3, &val.0),
+            (&5, &val.1),
+            (&7, &val.2),
+            (&8, &val.3),
+            (&9, &val.4),
+            (&10, &val.5),
+            (&15, &val.6),
+        ];
+        assert_eq!(vals, exp);
+    }
+
+    #[test]
+    fn into_iter_subtree_test() {
+        let mut v: Bst<i32, String> = Bst::new();
+        for i in [10, 5, 15, 3, 8, 7, 9] {
+            v.insert(i, i.to_string());
+        }
+
+        let mut vals = vec![];
+        for i in v {
+            vals.push(i);
+        }
+        let val = (
+            "3".to_string(),
+            "5".to_string(),
+            "7".to_string(),
+            "8".to_string(),
+            "9".to_string(),
+            "10".to_string(),
+            "15".to_string(),
+        );
+        let exp = vec![
+            (3, val.0),
+            (5, val.1),
+            (7, val.2),
+            (8, val.3),
+            (9, val.4),
+            (10, val.5),
+            (15, val.6),
         ];
         assert_eq!(vals, exp);
     }
