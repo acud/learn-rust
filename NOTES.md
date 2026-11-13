@@ -71,3 +71,15 @@ this is again the borrow checker strictness we ran into before.
 - the --release allows the optimizer to do inlining, thus removing compute on branch picking, function calls, allows for values to stay in registers instead of moving to the stack, also there are overflow checks on integers. release removes most of the overhead and therefore allowing speedups up to x10.
 - release cannot speed up waiting on memory - when handling large trees we need to wait on the main RAM to get the tree node, and the CPU cache constantly misses (this is pointer chasing, and the optimizer cannot help with that)
 
+NOTES 1.3:
+1. Why iter_mut was harder: overlapping &mut vs. shared refs that can overlap freely, and how splitting fixed it.
+iter_mut is harder because the stack holds mutable borrows to multiple elements at the same time. this is possible with shared references but not with mutable ones. so if we would do it like in the other iterators
+we would end up with multiple mutable borrows coming from the same loan of the tree (the first mutable borrow is the root, then the left node which comes from the root, etc). the borrowck does not allow this.
+the borrowck does allow for splitting borrows, i.e. it allows to keep several mutable borrows over the different fields of a type - that's how we solved it (the stack there doesn't keep a borrow to the node but rather to the needed fields of the node)
+2. What 'a ties together: the iterator, every item it yields, and one borrow of the tree, including the case where the iterator outlives no
+   stored &Bst.
+the added 'a lifetime allows us to tie together the lifetime of the tree itself with the iterator types (that borrow or consume from the tree) with the  lifetime of the references, for example, in the case of the iter_mut() (when we return the mutable ref which is stored in the stack, the compiler knows that the tree must outlive it).
+the iterator therefore cannot outlive the &Bst since it borrows from it. it also cannot outlive the owned version because it still consumes the tree while iterating.
+3. What breaks without it: dangling references from insert/remove while iterating, and items that outlive the tree.
+without the lifetime, the compiler cannot know how long that references from the tree may live for, as the lifetime elision rules will pick up the iterator next() lifetime calls and the type's lifetime. however, since the two types are intertwined in terms of lifetimes, the 'a allows us to explicitly give the compiler the annotations of which types/fields depend on it.
+if we would not have that, the iterator might keep dangling references to the tree. by having the iterators borrow/consume the tree the compiler guarantees that the tree cannot be changed by another consumer at the same time, making sure we have memory safety.

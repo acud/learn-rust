@@ -1,7 +1,9 @@
 use crate::bst::{Bst, Node};
 pub struct IterMut<'a, K, V> {
-    stack: Vec<(&'a K, &'a mut V, Option<&'a mut Node<K, V>>)>,
+    stack: Vec<StackItem<'a, K, V>>,
 }
+
+type StackItem<'a, K, V> = (&'a K, &'a mut V, Option<&'a mut Node<K, V>>);
 
 impl<'a, K, V> IterMut<'a, K, V> {
     pub fn new(bst: &'a mut Bst<K, V>) -> Self {
@@ -11,10 +13,7 @@ impl<'a, K, V> IterMut<'a, K, V> {
     }
 
     /// returns the left spine for a given node
-    fn left_spine(
-        node: Option<&'a mut Node<K, V>>,
-        stack: &mut Vec<(&'a K, &'a mut V, Option<&'a mut Node<K, V>>)>,
-    ) {
+    fn left_spine(node: Option<&'a mut Node<K, V>>, stack: &mut Vec<StackItem<'a, K, V>>) {
         if let Some(node) = node {
             let mut cur: &mut Node<K, V> = node;
             loop {
@@ -146,6 +145,7 @@ mod tests {
         let mut iter = v.iter();
         assert_eq!(iter.next(), None);
     }
+
     #[test]
     fn test_iter_new() {
         let mut v: Bst<i32, String> = Bst::new();
@@ -289,6 +289,56 @@ mod tests {
         let mut i = v.into_iter();
         i.next();
         i.next();
+    }
+
+    #[test]
+    fn iter_empty_tests() {
+        let mut v: Bst<i32, String> = Bst::new();
+        {
+            let mut s = v.iter();
+            assert_eq!(s.next(), None);
+        }
+        {
+            let mut s = v.iter_mut();
+            assert_eq!(s.next(), None);
+        }
+        {
+            let mut s = v.into_iter();
+            assert_eq!(s.next(), None);
+        }
+    }
+
+    #[test]
+    fn iter_mut_subtree_test() {
+        let mut v: Bst<i32, String> = Bst::new();
+        let val = "val".to_string();
+        for i in [10, 5, 15, 3, 8, 7, 9] {
+            v.insert(i, val.clone());
+        }
+
+        let mut vals = vec![];
+        for i in v.iter_mut() {
+            vals.push(i);
+        }
+        let mut val = (
+            "val".to_string(),
+            "val".to_string(),
+            "val".to_string(),
+            "val".to_string(),
+            "val".to_string(),
+            "val".to_string(),
+            "val".to_string(),
+        );
+        let exp = vec![
+            ((&3, &mut val.0)),
+            ((&5, &mut val.1)),
+            ((&7, &mut val.2)),
+            ((&8, &mut val.3)),
+            ((&9, &mut val.4)),
+            ((&10, &mut val.5)),
+            ((&15, &mut val.6)),
+        ];
+        assert_eq!(vals, exp);
     }
 
     fn one_mil_right_tree() -> Bst<i32, String> {
