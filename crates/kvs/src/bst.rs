@@ -31,10 +31,12 @@ impl<'a, K, V> Bst<K, V> {
         self.len == 0
     }
 
+    #[must_use]
     pub fn iter(&'a self) -> Iter<'a, K, V> {
         Iter::new(self)
     }
 
+    #[must_use]
     pub fn iter_mut(&'a mut self) -> IterMut<'a, K, V> {
         IterMut::new(self)
     }
@@ -168,6 +170,16 @@ impl<'a, K, V> IntoIterator for &'a Bst<K, V> {
     // Required method
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+impl<'a, K, V> IntoIterator for &'a mut Bst<K, V> {
+    type Item = (&'a K, &'a mut V);
+    type IntoIter = IterMut<'a, K, V>;
+
+    // Required method
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
     }
 }
 
@@ -386,11 +398,8 @@ mod tests {
         for i in 0..6 {
             v.insert(5 - i, "val".to_string());
         }
-        //let mut iter = v.iter();
-        let mut idx = 0;
-        for (a, b) in &v {
-            assert_eq!((a, b), (&idx, &"val".to_string()));
-            idx += 1;
+        for (idx, (a, b)) in (&v).into_iter().enumerate() {
+            assert_eq!((a, b), (&i32::try_from(idx).unwrap(), &"val".to_string()));
         }
     }
 
@@ -400,10 +409,8 @@ mod tests {
         for i in 0..6 {
             v.insert(5 - i, "val".to_string());
         }
-        let mut idx = 0;
-        for (a, b) in v {
-            assert_eq!((a, b), (idx, "val".to_string()));
-            idx += 1;
+        for (idx, (a, b)) in v.into_iter().enumerate() {
+            assert_eq!((a, b), (i32::try_from(idx).unwrap(), "val".to_string()));
         }
     }
 
@@ -419,10 +426,8 @@ mod tests {
                 *v = "vv".to_string();
             }
         }
-        let mut idx = 0;
-        for i in &v {
-            assert_eq!((&idx, &"vv".to_string()), i);
-            idx += 1;
+        for (idx, i) in (&v).into_iter().enumerate() {
+            assert_eq!((&i32::try_from(idx).unwrap(), &"vv".to_string()), i);
         }
     }
 
