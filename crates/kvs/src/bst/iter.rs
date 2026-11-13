@@ -154,9 +154,18 @@ mod tests {
         }
         let mut iter = v.iter();
         let mut vals = vec![];
-        for i in 0..5 {
+        for _i in 0..5 {
             vals.push(iter.next());
         }
+        let val = "val".to_string();
+        let exp = vec![
+            Some((&0, &val)),
+            Some((&1, &val)),
+            Some((&2, &val)),
+            Some((&3, &val)),
+            Some((&4, &val)),
+        ];
+        assert_eq!(vals, exp);
     }
 
     #[test]
@@ -170,6 +179,16 @@ mod tests {
         for _ in 0..6 {
             vals.push(iter.next());
         }
+        let val = "val".to_string();
+        let exp = vec![
+            Some((&0, &val)),
+            Some((&1, &val)),
+            Some((&2, &val)),
+            Some((&3, &val)),
+            Some((&4, &val)),
+            Some((&5, &val)),
+        ];
+        assert_eq!(vals, exp);
     }
 
     #[test]
@@ -182,6 +201,16 @@ mod tests {
         for i in &v {
             vals.push(i);
         }
+        let val = "val".to_string();
+        let exp = vec![
+            ((&0, &val)),
+            ((&1, &val)),
+            ((&2, &val)),
+            ((&3, &val)),
+            ((&4, &val)),
+            ((&5, &val)),
+        ];
+        assert_eq!(vals, exp);
     }
 
     #[test]
@@ -194,6 +223,15 @@ mod tests {
         for i in v {
             vals.push(i);
         }
+        let exp = vec![
+            ((0, "val".to_string())),
+            ((1, "val".to_string())),
+            ((2, "val".to_string())),
+            ((3, "val".to_string())),
+            ((4, "val".to_string())),
+            ((5, "val".to_string())),
+        ];
+        assert_eq!(vals, exp);
     }
 
     #[test]
@@ -213,6 +251,16 @@ mod tests {
         for i in &v {
             vals.push(i);
         }
+        let val = "vv".to_string();
+        let exp = vec![
+            ((&0, &val)),
+            ((&1, &val)),
+            ((&2, &val)),
+            ((&3, &val)),
+            ((&4, &val)),
+            ((&5, &val)),
+        ];
+        assert_eq!(vals, exp);
     }
 
     #[test]
