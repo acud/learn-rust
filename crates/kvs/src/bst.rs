@@ -218,6 +218,19 @@ impl<K, V> Iterator for IntoIter<K, V> {
     }
 }
 
+impl<K, V> Drop for IntoIter<K, V> {
+    fn drop(&mut self) {
+        while let Some(elem) = self.stack.pop() {
+            if let Some(v) = elem.left {
+                self.stack.push(v);
+            }
+            if let Some(v) = elem.right {
+                self.stack.push(v);
+            }
+        }
+    }
+}
+
 pub struct Iter<'a, K, V> {
     stack: Vec<&'a Node<K, V>>,
 }
@@ -345,6 +358,27 @@ mod tests {
             idx += 1;
         }
     }
+
+    #[test]
+    fn one_mil_iter_drop_test() {
+        let v = one_mil_right_tree();
+        let _i = v.into_iter();
+    }
+
+    #[test]
+    fn one_mil_both_sides_iter_drop_test() {
+        let v = one_mil_tree_both_sides();
+        let _i = v.into_iter();
+    }
+
+    #[test]
+    fn one_mil_both_sides_half_consumed_iter_drop_test() {
+        let v = one_mil_tree_both_sides();
+        let mut i = v.into_iter();
+        i.next();
+        i.next();
+    }
+
     #[test]
     fn test_new() {
         let v: Bst<String, String> = Bst::new();
@@ -512,8 +546,7 @@ mod tests {
         assert_eq!(v.len(), 4);
     }
 
-    #[test]
-    fn one_mil_test() {
+    fn one_mil_right_tree() -> Bst<i32, String> {
         let mut v: Bst<i32, String> = Bst::new();
         let node = Box::new(Node {
             key: 1_000_000,
@@ -539,10 +572,10 @@ mod tests {
 
         v.children = Some(parent);
         v.len = 1_000_000;
+        v
     }
 
-    #[test]
-    fn one_mil_both_sides_test() {
+    fn one_mil_tree_both_sides() -> Bst<i32, String> {
         let mut v: Bst<i32, String> = Bst::new();
         let node = Box::new(Node {
             key: 1_000_000,
@@ -590,6 +623,17 @@ mod tests {
 
         v.children = Some(parent);
         v.len = 1_000_000;
+        v
+    }
+
+    #[test]
+    fn one_mil_test() {
+        let _v = one_mil_right_tree();
+    }
+
+    #[test]
+    fn one_mil_both_sides_test() {
+        let _v = one_mil_tree_both_sides();
     }
 
     #[test]
