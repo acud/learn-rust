@@ -34,6 +34,10 @@ impl<'a, K, V> Bst<K, V> {
     pub fn iter(&'a self) -> Iter<'a, K, V> {
         Iter::new(self)
     }
+
+    pub fn iter_mut(&'a mut self) -> IterMut<'a, K, V> {
+        IterMut::new(self)
+    }
 }
 
 impl<K: Ord + Debug, V: Debug> Bst<K, V> {
@@ -177,6 +181,50 @@ impl<K, V> IntoIterator for Bst<K, V> {
     }
 }
 
+pub struct IterMut<'a, K, V> {
+    stack: Vec<(&'a K, &'a mut V, Option<&'a mut Node<K, V>>)>,
+}
+
+impl<'a, K, V> IterMut<'a, K, V> {
+    fn new(bst: &'a mut Bst<K, V>) -> Self {
+        let mut stack = vec![];
+        IterMut::left_spine(bst.children.as_deref_mut(), &mut stack);
+        Self { stack }
+    }
+
+    /// returns the left spine for a given node
+    fn left_spine(
+        node: Option<&'a mut Node<K, V>>,
+        stack: &mut Vec<(&'a K, &'a mut V, Option<&'a mut Node<K, V>>)>,
+    ) {
+        if let Some(node) = node {
+            let mut cur: &mut Node<K, V> = node;
+            loop {
+                // go down all the way
+                if cur.left.is_some() {
+                    let next = cur.left.as_deref_mut().unwrap();
+                    let item = (&cur.key, &mut cur.value, cur.right.as_deref_mut());
+                    cur = next;
+                    stack.push(item);
+                } else {
+                    let item = (&cur.key, &mut cur.value, cur.right.as_deref_mut());
+                    stack.push(item);
+                    break;
+                }
+            }
+        }
+    }
+}
+impl<'a, K, V> Iterator for IterMut<'a, K, V> {
+    type Item = (&'a K, &'a mut V);
+    fn next(&mut self) -> Option<Self::Item> {
+        let v: (&'a K, &'a mut V, Option<&'a mut Node<K, V>>) = self.stack.pop()?;
+        IterMut::left_spine(v.2, &mut self.stack);
+
+        Some((v.0, v.1))
+    }
+}
+
 pub struct IntoIter<K, V> {
     stack: Vec<Box<Node<K, V>>>,
 }
@@ -287,12 +335,12 @@ impl<K, V> Drop for Bst<K, V> {
             v.push(elem);
         }
 
-        while let Some(mut elem) = v.pop() {
-            if elem.left.is_some() {
-                v.push(elem.left.take().expect("safe to pop"));
+        while let Some(elem) = v.pop() {
+            if let Some(node) = elem.left {
+                v.push(node);
             }
-            if elem.right.is_some() {
-                v.push(elem.right.take().expect("safe to pop"));
+            if let Some(node) = elem.right {
+                v.push(node);
             }
         }
     }
@@ -355,6 +403,25 @@ mod tests {
         let mut idx = 0;
         for (a, b) in v {
             assert_eq!((a, b), (idx, "val".to_string()));
+            idx += 1;
+        }
+    }
+
+    #[test]
+    fn test_iter_mut() {
+        let mut v: Bst<i32, String> = Bst::new();
+        for i in 0..6 {
+            v.insert(5 - i, "val".to_string());
+        }
+        {
+            let iter = v.iter_mut();
+            for (_k, v) in iter {
+                *v = "vv".to_string();
+            }
+        }
+        let mut idx = 0;
+        for i in &v {
+            assert_eq!((&idx, &"vv".to_string()), i);
             idx += 1;
         }
     }
