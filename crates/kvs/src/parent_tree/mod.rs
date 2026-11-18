@@ -13,6 +13,11 @@ impl<K, V> ParentTree<K, V> {
             len: 0,
         }
     }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.len
+    }
 }
 
 impl<K: Ord, V> ParentTree<K, V> {
@@ -46,7 +51,6 @@ impl<K: Ord, V> ParentTree<K, V> {
                             right: None,
                         })));
                         self.len += 1;
-                        //break;
                         return None;
                     }
                 }
@@ -66,7 +70,6 @@ impl<K: Ord, V> ParentTree<K, V> {
                             right: None,
                         })));
                         self.len += 1;
-                        //break;
                         return None;
                     }
                 }
@@ -91,6 +94,71 @@ mod tests {
     #[test]
     fn test_new() {
         let mut tree = ParentTree::new();
+        assert_eq!(tree.len(), 0);
         assert_eq!(tree.insert(5, 10), None);
+        assert_eq!(tree.len(), 1);
+    }
+
+    #[test]
+    fn get_none() {
+        let v: ParentTree<String, String> = ParentTree::new();
+        assert_eq!(v.get(&"some_key".to_string()), None);
+    }
+
+    #[test]
+    fn insert_one() {
+        let mut v: ParentTree<String, String> = ParentTree::new();
+        assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
+        assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
+        assert_eq!(v.len(), 1);
+    }
+
+    #[test]
+    fn insert_two() {
+        let mut v: ParentTree<String, String> = ParentTree::new();
+        assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
+        assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
+        assert_eq!(v.insert("key2".to_string(), "value2".to_string()), None);
+        assert_eq!(v.len(), 2);
+        assert_eq!(v.get(&"key2".to_string()), Some(&"value2".to_string()));
+    }
+    #[test]
+    fn insert_dupe() {
+        let mut v: ParentTree<String, String> = ParentTree::new();
+        assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
+        assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
+        assert_eq!(
+            v.insert("key".to_string(), "value2".to_string()),
+            Some("value".to_string())
+        );
+        assert_eq!(v.len(), 1);
+    }
+
+    #[test]
+    fn get_invalid() {
+        let mut v: ParentTree<String, String> = ParentTree::new();
+        assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
+        assert_eq!(v.get(&"key".to_string()), Some(&"value".to_string()));
+        assert_eq!(v.get(&"key111".to_string()), None);
+        assert_eq!(v.len(), 1);
+    }
+
+    #[test]
+    fn get_mix() {
+        let mut v: ParentTree<String, String> = ParentTree::new();
+        let mut tups = [
+            ("key", "value"),
+            ("key111", "valuexxx"),
+            ("kex", "vaxx"),
+            ("kfs", "vxy"),
+        ];
+        for item in tups {
+            v.insert(item.0.to_string(), item.1.to_string());
+        }
+        assert_eq!(v.len(), 4);
+        tups.reverse();
+        for item in tups {
+            assert_eq!(v.get(&item.0.to_string()), Some(&item.1.to_string()));
+        }
     }
 }

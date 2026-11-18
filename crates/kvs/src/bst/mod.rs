@@ -231,7 +231,6 @@ mod tests {
     #[test]
     fn test_new() {
         let v: Bst<String, String> = Bst::new();
-
         assert_eq!(v.len(), 0);
     }
 
