@@ -31,6 +31,9 @@ impl<K: Clone, V: Clone> NodeWrapper<K, V> {
     pub fn value(&self) -> V {
         self.node.borrow().value.clone()
     }
+    pub fn successor(&self) -> Option<NodeWrapper<K, V>> {
+        None
+    }
 }
 
 impl<K: Ord, V> ParentTree<K, V> {
@@ -237,5 +240,17 @@ mod tests {
                 item.1.to_string()
             );
         }
+    }
+
+    #[test]
+    fn successor_simple() {
+        let mut v = ParentTree::new();
+        v.insert(10, "value".to_string());
+        v.insert(5, "value".to_string());
+        v.insert(15, "value".to_string());
+        let node = v.find(&5).unwrap();
+        let suc = node.successor();
+        assert!(suc.is_some());
+        assert_eq!(suc.unwrap().key(), 5);
     }
 }
