@@ -34,7 +34,7 @@ impl<K: Clone, V: Clone> NodeWrapper<K, V> {
 }
 
 impl<K: Ord, V> ParentTree<K, V> {
-    pub fn get(&self, key: &K) -> Option<NodeWrapper<K, V>> {
+    pub fn find(&self, key: &K) -> Option<NodeWrapper<K, V>> {
         if self.children.is_none() {
             return None;
         }
@@ -161,7 +161,7 @@ mod tests {
     #[test]
     fn get_none() {
         let v: ParentTree<String, String> = ParentTree::new();
-        assert!(v.get(&"some_key".to_string()).is_none());
+        assert!(v.find(&"some_key".to_string()).is_none());
     }
 
     #[test]
@@ -169,7 +169,7 @@ mod tests {
         let mut v: ParentTree<String, String> = ParentTree::new();
         assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
         assert_eq!(
-            v.get(&"key".to_string()).unwrap().value(),
+            v.find(&"key".to_string()).unwrap().value(),
             "value".to_string()
         );
         assert_eq!(v.len(), 1);
@@ -180,13 +180,13 @@ mod tests {
         let mut v: ParentTree<String, String> = ParentTree::new();
         assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
         assert_eq!(
-            v.get(&"key".to_string()).unwrap().value(),
+            v.find(&"key".to_string()).unwrap().value(),
             "value".to_string()
         );
         assert_eq!(v.insert("key2".to_string(), "value2".to_string()), None);
         assert_eq!(v.len(), 2);
         assert_eq!(
-            v.get(&"key2".to_string()).unwrap().value(),
+            v.find(&"key2".to_string()).unwrap().value(),
             "value2".to_string()
         );
     }
@@ -195,7 +195,7 @@ mod tests {
         let mut v: ParentTree<String, String> = ParentTree::new();
         assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
         assert_eq!(
-            v.get(&"key".to_string()).unwrap().value(),
+            v.find(&"key".to_string()).unwrap().value(),
             "value".to_string()
         );
         assert_eq!(
@@ -210,10 +210,10 @@ mod tests {
         let mut v: ParentTree<String, String> = ParentTree::new();
         assert_eq!(v.insert("key".to_string(), "value".to_string()), None);
         assert_eq!(
-            v.get(&"key".to_string()).unwrap().value(),
+            v.find(&"key".to_string()).unwrap().value(),
             "value".to_string()
         );
-        assert!(v.get(&"key111".to_string()).is_none());
+        assert!(v.find(&"key111".to_string()).is_none());
         assert_eq!(v.len(), 1);
     }
 
@@ -233,7 +233,7 @@ mod tests {
         tups.reverse();
         for item in tups {
             assert_eq!(
-                v.get(&item.0.to_string()).unwrap().value(),
+                v.find(&item.0.to_string()).unwrap().value(),
                 item.1.to_string()
             );
         }
