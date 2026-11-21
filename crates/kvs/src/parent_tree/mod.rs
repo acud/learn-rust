@@ -24,7 +24,12 @@ struct NodeWrapper<K, V> {
     node: Rc<RefCell<Node<K, V>>>,
 }
 
-impl<K: Clone, V: Clone> NodeWrapper<K, V> {
+impl<K, V> NodeWrapper<K, V> {
+    fn new(node: Rc<RefCell<Node<K, V>>>) -> Self {
+        Self { node }
+    }
+}
+impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
     pub fn key(&self) -> K {
         self.node.borrow().key.clone()
     }
@@ -32,7 +37,68 @@ impl<K: Clone, V: Clone> NodeWrapper<K, V> {
         self.node.borrow().value.clone()
     }
     pub fn successor(&self) -> Option<NodeWrapper<K, V>> {
-        None
+        // if there's a right subtree, we need to walk down to the leftmost node
+        let key = self.key();
+        if self.node.borrow().right.is_some() {
+            let mut cur = Rc::clone(&self.node.borrow().right.as_ref().expect("safe"));
+            loop {
+                let ord = key.cmp(&cur.as_ref().borrow().key);
+                match ord {
+                    Ordering::Less => {
+                        if cur.borrow().left.is_some() {
+                            let newcur = {
+                                let jr = cur.borrow();
+                                let jj = jr.left.as_ref().expect("safe due to check");
+
+                                let jjj = Rc::clone(&jj);
+                                jjj
+                            };
+                            cur = newcur;
+                        } else {
+                            return Some(NodeWrapper::new(cur));
+                        }
+                    }
+                    Ordering::Equal => {
+                        return None;
+                    }
+                    Ordering::Greater => {
+                        return None;
+                    }
+                }
+            }
+        }
+        if self.node.borrow().parent.is_none() {
+            return None;
+        } else {
+            let mut cur = {
+                let guard = self.node.borrow();
+                guard.parent.as_ref()?.upgrade()?
+            };
+
+            loop {
+                let ord = key.cmp(&cur.borrow().key);
+                match ord {
+                    Ordering::Less => {
+                        // we were in a left node, done.
+                        return Some(NodeWrapper::new(cur));
+                    }
+                    Ordering::Equal => {
+                        // go up
+                        cur = {
+                            let guard = self.node.borrow();
+                            guard.parent.as_ref()?.upgrade()?
+                        };
+                    }
+                    Ordering::Greater => {
+                        // we were in a right node. go up.
+                        cur = {
+                            let guard = self.node.borrow();
+                            guard.parent.as_ref()?.upgrade()?
+                        };
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -251,6 +317,6 @@ mod tests {
         let node = v.find(&5).unwrap();
         let suc = node.successor();
         assert!(suc.is_some());
-        assert_eq!(suc.unwrap().key(), 5);
+        assert_eq!(suc.unwrap().key(), 10);
     }
 }
