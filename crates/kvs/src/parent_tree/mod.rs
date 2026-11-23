@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::rc::{Rc, Weak};
+
 struct ParentTree<K, V> {
     children: Option<Rc<RefCell<Node<K, V>>>>,
     len: usize,
@@ -85,14 +86,14 @@ impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
                     Ordering::Equal => {
                         // go up
                         cur = {
-                            let guard = self.node.borrow();
+                            let guard = cur.borrow();
                             guard.parent.as_ref()?.upgrade()?
                         };
                     }
                     Ordering::Greater => {
                         // we were in a right node. go up.
                         cur = {
-                            let guard = self.node.borrow();
+                            let guard = cur.borrow();
                             guard.parent.as_ref()?.upgrade()?
                         };
                     }
@@ -318,5 +319,41 @@ mod tests {
         let suc = node.successor();
         assert!(suc.is_some());
         assert_eq!(suc.unwrap().key(), 10);
+    }
+
+    #[test]
+    fn no_successor_simple() {
+        let mut v = ParentTree::new();
+        v.insert(10, "value".to_string());
+        v.insert(15, "value".to_string());
+        let node = v.find(&15).unwrap();
+        let suc = node.successor();
+        assert!(suc.is_none());
+    }
+
+    #[test]
+    fn successor_complex() {
+        let mut v = ParentTree::new();
+        v.insert(30, "value".to_string());
+        v.insert(20, "value".to_string());
+        v.insert(25, "value".to_string());
+        v.insert(28, "value".to_string());
+        let node = v.find(&28).unwrap();
+        let suc = node.successor();
+        assert!(suc.is_some());
+        assert_eq!(suc.unwrap().key(), 30);
+        drop(node);
+        v.insert(27, "value".to_string());
+        let node = v.find(&27).unwrap();
+        let suc = node.successor();
+        assert!(suc.is_some());
+        assert_eq!(suc.unwrap().key(), 28);
+
+        drop(node);
+        v.insert(29, "value".to_string());
+        let node = v.find(&29).unwrap();
+        let suc = node.successor();
+        assert!(suc.is_some());
+        assert_eq!(suc.unwrap().key(), 30);
     }
 }
