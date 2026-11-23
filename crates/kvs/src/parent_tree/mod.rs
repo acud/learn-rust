@@ -219,6 +219,7 @@ struct Node<K, V> {
 mod tests {
 
     use super::*;
+    use std::cell::Cell;
 
     #[test]
     fn test_new() {
@@ -355,5 +356,42 @@ mod tests {
         let suc = node.successor();
         assert!(suc.is_some());
         assert_eq!(suc.unwrap().key(), 30);
+    }
+
+    struct Val {
+        ctr: Rc<Cell<usize>>,
+    }
+
+    impl Val {
+        fn new(ctr: Rc<Cell<usize>>) -> Self {
+            Self { ctr }
+        }
+    }
+
+    impl Drop for Val {
+        fn drop(&mut self) {
+            let mut ctr = self.ctr.get();
+            ctr += 1;
+            self.ctr.set(ctr);
+        }
+    }
+
+    #[test]
+    fn drop_test() {
+        let ctr: Rc<Cell<usize>> = Rc::new(Cell::new(0));
+        {
+            let mut v = ParentTree::new();
+            v.insert(30, Val::new(Rc::clone(&ctr)));
+            v.insert(20, Val::new(Rc::clone(&ctr)));
+            v.insert(25, Val::new(Rc::clone(&ctr)));
+            v.insert(28, Val::new(Rc::clone(&ctr)));
+            let node = v.find(&28).unwrap();
+            let parent = &node.node.borrow().parent;
+            let _strong = match parent {
+                None => panic!("should have value"),
+                Some(v) => v.upgrade().unwrap(),
+            };
+        }
+        assert_eq!(ctr.get(), 4);
     }
 }
