@@ -394,4 +394,28 @@ mod tests {
         }
         assert_eq!(ctr.get(), 4);
     }
+
+    #[test]
+    fn successor_bushy_tree() {
+        let mut v = ParentTree::new();
+        let mut keys = vec![50, 30, 70, 20, 40, 60, 80, 35, 65];
+        for key in &keys {
+            v.insert(key.clone(), "val".to_string());
+        }
+        let mut results = vec![20];
+        let mut node = v.find(&20).unwrap();
+        while let Some(succesor) = node.successor() {
+            results.push(succesor.key());
+            node = succesor;
+        }
+        keys.sort();
+        assert_eq!(keys, results);
+    }
+
+    #[test]
+    fn single_node_no_successor() {
+        let mut v = ParentTree::new();
+        v.insert(1, "value".to_string());
+        assert!(v.find(&1).unwrap().successor().is_none());
+    }
 }
