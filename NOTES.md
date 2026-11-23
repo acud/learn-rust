@@ -86,3 +86,23 @@ without the lifetime, the compiler cannot know how long that references from the
 if we would tie the references lifetime to the &mut self on next(), we would get a lending iterator with only one alive item at a time, with no collect() (ring buffer, as an example).
 since the two types are intertwined in terms of lifetimes, the 'a allows us to explicitly give the compiler the annotations of which types/fields depend on it.
 if we would not have that, the iterator might keep dangling references to the tree, for example, keeping a reference to an item that was removed from the tree. by having the iterators borrow/consume the tree the compiler guarantees that the tree cannot be changed by another consumer at the same time, making sure we have memory safety.
+
+NOTES 1.4:
+When does RefCell panic, and why is that a runtime check instead of compile time?
+RefCell panics when the rust borrowck rules are not followed for RefCell during runtime: any number of immutable borrows could be held simultaneously, and at most one mutable borrow, but never both.
+borrow() will panic when there's a mutable borrow still held, borrow_mut() will panic if any other guard is still held, try_borrow() and try_borrow_mut() return a result instead of panicking.
+
+RefCell allows us to do interior mutability, which moves the borrowck rules for that object to runtime instead of compile-time and introducing mutability on an otherwise immutable object (borrow_mut() takes &self, not &mut self).
+The borrowck therefore cannot know that we are holding a mutable borrow to something, since we are borrowing from an immutable object. It still does its job to make sure guards don't outlive their RefCells.
+However, since using RefCell essentially moves the enforcement of the pointer aliasing rules to runtime, we get additional cost - bugs appear as panics instead of compile-time errors, plus we get extra bookkeeping ops on the refcell every time we borrow, plus checks that the rules aren't violated.
+
+Normally we could not even get into such an issue without RefCell, because the compiler would not even allow us to hold two mutable borrows to the same tree at the same time (a find() would need to take &mut self, which would force us to not keep two borrows alive at the same time)
+
+- Why is Rc not Send?
+because it uses non-atomic incrementing of the reference counter.
+
+- What does that mean for phase 4?
+that we need to use thread-safe (atomic) primitives for sharing references to objects across threads (Arc).
+Arc is Send only if T: Send + Sync, son we would need a synchronization primitive (Mutex/RwLock) to synchronize the access to the content inside Arc.
+The other issue is that because we're using Rc, Arc<Mutex<ParentTree>> isn't Send, because ParentTree isn't Send. so the implementation of the tree must change so that it can be Send for Arc.
+
