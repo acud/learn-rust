@@ -73,8 +73,7 @@ impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
         } else {
             let mut cur = {
                 let guard = self.node.borrow();
-                //guard.parent.as_ref()?.upgrade()?
-                Rc::clone(guard.parent.as_ref()?)
+                guard.parent.as_ref()?.upgrade()?
             };
 
             loop {
@@ -88,16 +87,14 @@ impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
                         // go up
                         cur = {
                             let guard = cur.borrow();
-                            //guard.parent.as_ref()?.upgrade()?
-                            Rc::clone(guard.parent.as_ref()?)
+                            guard.parent.as_ref()?.upgrade()?
                         };
                     }
                     Ordering::Greater => {
                         // we were in a right node. go up.
                         cur = {
                             let guard = cur.borrow();
-                            //guard.parent.as_ref()?.upgrade()?
-                            Rc::clone(guard.parent.as_ref()?)
+                            guard.parent.as_ref()?.upgrade()?
                         };
                     }
                 }
@@ -167,8 +164,7 @@ impl<K: Ord, V> ParentTree<K, V> {
         }
         let mut cur = self.children.as_ref().map(Rc::clone).unwrap();
         loop {
-            //            let parent = Some(Rc::downgrade(&cur));
-            let parent = Some(Rc::clone(&cur));
+            let parent = Some(Rc::downgrade(&cur));
             let cmp = key.cmp(&cur.borrow().key);
             match cmp {
                 Ordering::Less => {
@@ -212,7 +208,7 @@ impl<K: Ord, V> ParentTree<K, V> {
 }
 
 struct Node<K, V> {
-    parent: Option<Rc<RefCell<Node<K, V>>>>,
+    parent: Option<Weak<RefCell<Node<K, V>>>>,
     key: K,
     value: V,
     left: Option<Rc<RefCell<Node<K, V>>>>,
@@ -384,8 +380,6 @@ mod tests {
     fn drop_test() {
         let ctr: Rc<Cell<usize>> = Rc::new(Cell::new(0));
         {
-            // i expect the ctr to be at 0 on this, because the whole chain
-            // is still alive in memory, none of the nodes can get dropped.
             let mut v = ParentTree::new();
             v.insert(30, Val::new(Rc::clone(&ctr)));
             v.insert(20, Val::new(Rc::clone(&ctr)));
@@ -395,7 +389,7 @@ mod tests {
             let parent = &node.node.borrow().parent;
             let _strong = match parent {
                 None => panic!("should have value"),
-                Some(v) => println!("{}", v.borrow().key),
+                Some(v) => v.upgrade().unwrap(),
             };
         }
         assert_eq!(ctr.get(), 4);
