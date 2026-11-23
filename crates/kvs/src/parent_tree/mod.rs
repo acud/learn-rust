@@ -59,10 +59,7 @@ impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
                             return Some(NodeWrapper::new(cur));
                         }
                     }
-                    Ordering::Equal => {
-                        return None;
-                    }
-                    Ordering::Greater => {
+                    Ordering::Equal | Ordering::Greater => {
                         return None;
                     }
                 }
@@ -105,9 +102,7 @@ impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
 
 impl<K: Ord, V> ParentTree<K, V> {
     pub fn find(&self, key: &K) -> Option<NodeWrapper<K, V>> {
-        if self.children.is_none() {
-            return None;
-        }
+        self.children.as_ref()?;
         let mut cur = Rc::clone(self.children.as_ref().expect("safe"));
 
         loop {
