@@ -2,12 +2,13 @@ use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::rc::{Rc, Weak};
 
-struct ParentTree<K, V> {
+pub struct ParentTree<K, V> {
     children: Option<Rc<RefCell<Node<K, V>>>>,
     len: usize,
 }
 
 impl<K, V> ParentTree<K, V> {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             children: None,
@@ -19,29 +20,46 @@ impl<K, V> ParentTree<K, V> {
     pub fn len(&self) -> usize {
         self.len
     }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
 }
 
-struct NodeWrapper<K, V> {
+impl<K, V> Default for ParentTree<K, V> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+pub struct NodeWrapper<K, V> {
     node: Rc<RefCell<Node<K, V>>>,
 }
 
 impl<K, V> NodeWrapper<K, V> {
+    #[must_use]
     fn new(node: Rc<RefCell<Node<K, V>>>) -> Self {
         Self { node }
     }
 }
 impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
+    #[must_use]
     pub fn key(&self) -> K {
         self.node.borrow().key.clone()
     }
+
+    #[must_use]
     pub fn value(&self) -> V {
         self.node.borrow().value.clone()
     }
+
+    #[must_use]
     pub fn successor(&self) -> Option<NodeWrapper<K, V>> {
         // if there's a right subtree, we need to walk down to the leftmost node
         let key = self.key();
         if self.node.borrow().right.is_some() {
-            let mut cur = Rc::clone(&self.node.borrow().right.as_ref().expect("safe"));
+            let mut cur = Rc::clone(self.node.borrow().right.as_ref().expect("safe"));
             loop {
                 let ord = key.cmp(&cur.as_ref().borrow().key);
                 match ord {
@@ -51,8 +69,7 @@ impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
                                 let jr = cur.borrow();
                                 let jj = jr.left.as_ref().expect("safe due to check");
 
-                                let jjj = Rc::clone(&jj);
-                                jjj
+                                Rc::clone(jj)
                             };
                             cur = newcur;
                         } else {
@@ -66,7 +83,7 @@ impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
             }
         }
         if self.node.borrow().parent.is_none() {
-            return None;
+            None
         } else {
             let mut cur = {
                 let guard = self.node.borrow();
@@ -114,8 +131,7 @@ impl<K: Ord, V> ParentTree<K, V> {
                             let jr = cur.borrow();
                             let jj = jr.left.as_ref().expect("safe due to check");
 
-                            let jjj = Rc::clone(&jj);
-                            jjj
+                            Rc::clone(jj)
                         };
                         cur = newcur;
                     } else {
@@ -133,8 +149,7 @@ impl<K: Ord, V> ParentTree<K, V> {
                             let jr = cur.borrow();
                             let jj = jr.right.as_ref().expect("safe due to check");
 
-                            let jjj = Rc::clone(&jj);
-                            jjj
+                            Rc::clone(jj)
                         };
                         cur = newcur;
                     } else {
@@ -395,7 +410,7 @@ mod tests {
         let mut v = ParentTree::new();
         let mut keys = vec![50, 30, 70, 20, 40, 60, 80, 35, 65];
         for key in &keys {
-            v.insert(key.clone(), "val".to_string());
+            v.insert(*key, "val".to_string());
         }
         let mut results = vec![20];
         let mut node = v.find(&20).unwrap();
@@ -403,7 +418,7 @@ mod tests {
             results.push(succesor.key());
             node = succesor;
         }
-        keys.sort();
+        keys.sort_unstable();
         assert_eq!(keys, results);
     }
 

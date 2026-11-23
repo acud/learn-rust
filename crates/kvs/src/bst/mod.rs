@@ -36,12 +36,12 @@ impl<K, V> Bst<K, V> {
     }
 
     #[must_use]
-    pub fn iter<'a>(&'a self) -> Iter<'a, K, V> {
+    pub fn iter(&self) -> Iter<'_, K, V> {
         Iter::new(self)
     }
 
     #[must_use]
-    pub fn iter_mut<'a>(&'a mut self) -> IterMut<'a, K, V> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
         IterMut::new(self)
     }
 }
