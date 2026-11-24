@@ -58,22 +58,21 @@ impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
     pub fn successor(&self) -> Option<NodeWrapper<K, V>> {
         // if there's a right subtree, we need to walk down to the leftmost node
         let key = self.key();
-        if self.node.borrow().right.is_some() {
-            let mut cur = Rc::clone(self.node.borrow().right.as_ref().expect("safe"));
+        let v = self.node.borrow().right.clone();
+        if let Some(v) = v {
+            let mut cur = v;
             loop {
                 let ord = key.cmp(&cur.as_ref().borrow().key);
                 match ord {
                     Ordering::Less => {
-                        if cur.borrow().left.is_some() {
-                            let newcur = {
-                                let jr = cur.borrow();
-                                let jj = jr.left.as_ref().expect("safe due to check");
-
-                                Rc::clone(jj)
-                            };
-                            cur = newcur;
-                        } else {
-                            return Some(NodeWrapper::new(cur));
+                        let left = cur.borrow().left.clone();
+                        match left {
+                            None => {
+                                return Some(NodeWrapper::new(cur));
+                            }
+                            Some(left) => {
+                                cur = left;
+                            }
                         }
                     }
                     Ordering::Equal | Ordering::Greater => {
@@ -119,24 +118,14 @@ impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
 
 impl<K: Ord, V> ParentTree<K, V> {
     pub fn find(&self, key: &K) -> Option<NodeWrapper<K, V>> {
-        self.children.as_ref()?;
-        let mut cur = Rc::clone(self.children.as_ref().expect("safe"));
+        let mut cur = Rc::clone(self.children.as_ref()?);
 
         loop {
             let ord = key.cmp(&cur.as_ref().borrow().key);
             match ord {
                 Ordering::Less => {
-                    if cur.borrow().left.is_some() {
-                        let newcur = {
-                            let jr = cur.borrow();
-                            let jj = jr.left.as_ref().expect("safe due to check");
-
-                            Rc::clone(jj)
-                        };
-                        cur = newcur;
-                    } else {
-                        return None;
-                    }
+                    let left = cur.borrow().left.clone()?;
+                    cur = Rc::clone(&left);
                 }
                 Ordering::Equal => {
                     return Some(NodeWrapper {
@@ -144,17 +133,8 @@ impl<K: Ord, V> ParentTree<K, V> {
                     });
                 }
                 Ordering::Greater => {
-                    if cur.borrow().right.is_some() {
-                        let newcur = {
-                            let jr = cur.borrow();
-                            let jj = jr.right.as_ref().expect("safe due to check");
-
-                            Rc::clone(jj)
-                        };
-                        cur = newcur;
-                    } else {
-                        return None;
-                    }
+                    let right = cur.borrow().right.clone()?;
+                    cur = Rc::clone(&right);
                 }
             }
         }
