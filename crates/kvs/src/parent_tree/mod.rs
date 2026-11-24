@@ -81,35 +81,31 @@ impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
                 }
             }
         }
-        if self.node.borrow().parent.is_none() {
-            None
-        } else {
-            let mut cur = {
-                let guard = self.node.borrow();
-                guard.parent.as_ref()?.upgrade()?
-            };
+        let mut cur = {
+            let guard = self.node.borrow();
+            guard.parent.as_ref()?.upgrade()?
+        };
 
-            loop {
-                let ord = key.cmp(&cur.borrow().key);
-                match ord {
-                    Ordering::Less => {
-                        // we were in a left node, done.
-                        return Some(NodeWrapper::new(cur));
-                    }
-                    Ordering::Equal => {
-                        // go up
-                        cur = {
-                            let guard = cur.borrow();
-                            guard.parent.as_ref()?.upgrade()?
-                        };
-                    }
-                    Ordering::Greater => {
-                        // we were in a right node. go up.
-                        cur = {
-                            let guard = cur.borrow();
-                            guard.parent.as_ref()?.upgrade()?
-                        };
-                    }
+        loop {
+            let ord = key.cmp(&cur.borrow().key);
+            match ord {
+                Ordering::Less => {
+                    // we were in a left node, done.
+                    return Some(NodeWrapper::new(cur));
+                }
+                Ordering::Equal => {
+                    // go up
+                    cur = {
+                        let guard = cur.borrow();
+                        guard.parent.as_ref()?.upgrade()?
+                    };
+                }
+                Ordering::Greater => {
+                    // we were in a right node. go up.
+                    cur = {
+                        let guard = cur.borrow();
+                        guard.parent.as_ref()?.upgrade()?
+                    };
                 }
             }
         }
@@ -125,71 +121,58 @@ impl<K: Ord, V> ParentTree<K, V> {
             match ord {
                 Ordering::Less => {
                     let left = cur.borrow().left.clone()?;
-                    cur = Rc::clone(&left);
+                    cur = left;
                 }
                 Ordering::Equal => {
-                    return Some(NodeWrapper {
-                        node: Rc::clone(&cur),
-                    });
+                    return Some(NodeWrapper { node: cur });
                 }
                 Ordering::Greater => {
                     let right = cur.borrow().right.clone()?;
-                    cur = Rc::clone(&right);
+                    cur = right;
                 }
             }
         }
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Option<V> {
-        if self.children.is_none() {
-            self.children = Some(Rc::new(RefCell::new(Node {
-                parent: None,
-                key,
-                value,
-                left: None,
-                right: None,
-            })));
+        let Some(mut cur) = self.children.as_ref().map(Rc::clone) else {
+            self.children = Some(Rc::new(RefCell::new(Node::new(None, key, value))));
             self.len += 1;
             return None;
-        }
-        let mut cur = self.children.as_ref().map(Rc::clone).unwrap();
+        };
         loop {
             let parent = Some(Rc::downgrade(&cur));
             let cmp = key.cmp(&cur.borrow().key);
             match cmp {
                 Ordering::Less => {
-                    if cur.borrow().left.is_some() {
-                        let vv = Rc::clone(cur.borrow().left.as_ref().expect("val"));
-                        cur = vv;
-                    } else {
-                        cur.borrow_mut().left = Some(Rc::new(RefCell::new(Node {
-                            parent,
-                            key,
-                            value,
-                            left: None,
-                            right: None,
-                        })));
-                        self.len += 1;
-                        return None;
+                    let left = cur.borrow().left.clone();
+                    match left {
+                        Some(left) => {
+                            cur = left;
+                        }
+                        None => {
+                            cur.borrow_mut().left =
+                                Some(Rc::new(RefCell::new(Node::new(parent, key, value))));
+                            self.len += 1;
+                            return None;
+                        }
                     }
                 }
                 Ordering::Equal => {
                     return Some(std::mem::replace(&mut cur.borrow_mut().value, value));
                 }
                 Ordering::Greater => {
-                    if cur.borrow().right.is_some() {
-                        let vv = Rc::clone(cur.borrow().right.as_ref().expect("val"));
-                        cur = vv;
-                    } else {
-                        cur.borrow_mut().right = Some(Rc::new(RefCell::new(Node {
-                            parent,
-                            key,
-                            value,
-                            left: None,
-                            right: None,
-                        })));
-                        self.len += 1;
-                        return None;
+                    let right = cur.borrow().right.clone();
+                    match right {
+                        Some(right) => {
+                            cur = right;
+                        }
+                        None => {
+                            cur.borrow_mut().right =
+                                Some(Rc::new(RefCell::new(Node::new(parent, key, value))));
+                            self.len += 1;
+                            return None;
+                        }
                     }
                 }
             }
@@ -203,6 +186,18 @@ struct Node<K, V> {
     value: V,
     left: Option<Rc<RefCell<Node<K, V>>>>,
     right: Option<Rc<RefCell<Node<K, V>>>>,
+}
+
+impl<K, V> Node<K, V> {
+    fn new(parent: Option<Weak<RefCell<Node<K, V>>>>, key: K, value: V) -> Self {
+        Self {
+            parent,
+            key,
+            value,
+            left: None,
+            right: None,
+        }
+    }
 }
 
 #[cfg(test)]
