@@ -122,3 +122,12 @@ Newest entry at the bottom. Each entry: date, step, scores (Correctness / Tests 
 - Tooling: build ok; 32/32 tests; clippy pedantic clean; fmt clean.
 - Resolved: iterator types re-exported with `pub use`; iterator `new` is `pub(super)`; 1M builders moved to a shared `#[cfg(test)] mod test_util` used by both test modules.
 - Still open (non-blocking): `'a` on the `impl Bst` block; `is_some()`+`unwrap()` in the three `left_spine`s; `IterMut` tuple `.0/.1/.2`.
+
+## 2026-11-23: Step 1.4 Parent pointers: the cycle
+
+- Scores: Correctness 8 / Tests 8 / Idiom 7 / API 7 / Understanding 8. Overall 7.6 (B)
+- Tooling: build ok; 45/45 tests (0.43s); clippy pedantic clean; fmt clean.
+- Verified in scratch: `Rc`-parent mutant fails `drop_test` (0 vs 4 drops), other 12 pass; insert/find/successor match `BTreeMap` on 299 random trees; a 1M degenerate tree overflows the stack on drop; a handle outliving its tree gets `None` from `successor()`.
+- Must fix: none.
+- Carry-over (non-blocking): recursive drop (no iterative `Drop`, not required by this step); handle outliving tree makes `None` ambiguous; `successor` compares keys instead of node identity/structure, which forces `K: Clone + Ord, V: Clone` and leaves unreachable arms; `children` field is really `root`; NOTES Q2 stops at "non-atomic" without naming the consequence.
+- Outcome: **passed**. Current step moves to 1.5.

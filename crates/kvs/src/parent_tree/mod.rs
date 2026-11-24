@@ -43,19 +43,30 @@ impl<K, V> NodeWrapper<K, V> {
         Self { node }
     }
 }
-impl<K: Clone + Ord, V: Clone> NodeWrapper<K, V> {
+impl<K, V> NodeWrapper<K, V> {
     #[must_use]
-    pub fn key(&self) -> K {
+    pub fn key(&self) -> K
+    where
+        K: Clone,
+    {
         self.node.borrow().key.clone()
     }
 
     #[must_use]
-    pub fn value(&self) -> V {
+    pub fn value(&self) -> V
+    where
+        V: Clone,
+    {
         self.node.borrow().value.clone()
     }
+}
 
+impl<K: Ord, V> NodeWrapper<K, V> {
     #[must_use]
-    pub fn successor(&self) -> Option<NodeWrapper<K, V>> {
+    pub fn successor(&self) -> Option<NodeWrapper<K, V>>
+    where
+        K: Clone,
+    {
         // if there's a right subtree, we need to walk down to the leftmost node
         let key = self.key();
         let v = self.node.borrow().right.clone();
@@ -365,11 +376,7 @@ mod tests {
             v.insert(25, Val::new(Rc::clone(&ctr)));
             v.insert(28, Val::new(Rc::clone(&ctr)));
             let node = v.find(&28).unwrap();
-            let parent = &node.node.borrow().parent;
-            let _strong = match parent {
-                None => panic!("should have value"),
-                Some(v) => v.upgrade().unwrap(),
-            };
+            let _suc = node.successor().unwrap();
         }
         assert_eq!(ctr.get(), 4);
     }
