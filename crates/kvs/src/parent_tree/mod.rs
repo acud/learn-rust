@@ -146,16 +146,13 @@ impl<K: Ord, V> ParentTree<K, V> {
             match cmp {
                 Ordering::Less => {
                     let left = cur.borrow().left.clone();
-                    match left {
-                        Some(left) => {
-                            cur = left;
-                        }
-                        None => {
-                            cur.borrow_mut().left =
-                                Some(Rc::new(RefCell::new(Node::new(parent, key, value))));
-                            self.len += 1;
-                            return None;
-                        }
+                    if let Some(left) = left {
+                        cur = left;
+                    } else {
+                        cur.borrow_mut().left =
+                            Some(Rc::new(RefCell::new(Node::new(parent, key, value))));
+                        self.len += 1;
+                        return None;
                     }
                 }
                 Ordering::Equal => {
@@ -163,16 +160,13 @@ impl<K: Ord, V> ParentTree<K, V> {
                 }
                 Ordering::Greater => {
                     let right = cur.borrow().right.clone();
-                    match right {
-                        Some(right) => {
-                            cur = right;
-                        }
-                        None => {
-                            cur.borrow_mut().right =
-                                Some(Rc::new(RefCell::new(Node::new(parent, key, value))));
-                            self.len += 1;
-                            return None;
-                        }
+                    if let Some(right) = right {
+                        cur = right;
+                    } else {
+                        cur.borrow_mut().right =
+                            Some(Rc::new(RefCell::new(Node::new(parent, key, value))));
+                        self.len += 1;
+                        return None;
                     }
                 }
             }
