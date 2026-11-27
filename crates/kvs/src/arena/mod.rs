@@ -23,13 +23,24 @@ impl<K, V> ArenaTree<K, V> {
 }
 
 impl<K: Ord, V> ArenaTree<K, V> {
+    fn get_node(&self, id: NodeId) -> &Node<K, V> {
+        self.children
+            .get(id.usize())
+            .expect("requested node not in tree")
+    }
+    fn get_node_mut(&mut self, id: NodeId) -> &mut Node<K, V> {
+        self.children
+            .get_mut(id.usize())
+            .expect("requested node not in tree")
+    }
+
     fn find(&self, key: &K) -> Option<NodeId> {
         if self.children.len() == 0 {
             return None;
         }
         let mut node_id = NodeId(0);
         loop {
-            let cur = self.children.get(node_id.usize()).unwrap();
+            let cur = self.get_node(node_id);
             let ord = key.cmp(&cur.key);
             match ord {
                 Ordering::Less => {
@@ -65,7 +76,7 @@ impl<K: Ord, V> ArenaTree<K, V> {
         let mut node_id = NodeId(0);
 
         let ord = loop {
-            let cur = self.children.get(node_id.usize()).unwrap();
+            let cur = self.get_node(node_id);
             let ord = key.cmp(&cur.key);
             match ord {
                 Ordering::Less => {
@@ -96,22 +107,17 @@ impl<K: Ord, V> ArenaTree<K, V> {
                 let node = Node::new(key, value);
                 self.children.push(node);
                 let id = self.children.len() - 1;
-                let v = self.children.get_mut(node_id.usize());
-                v.unwrap().left = Some(NodeId(id as u32));
+                self.get_node_mut(node_id).left = Some(NodeId::from_usize(id));
                 return None;
             }
             Ordering::Equal => {
-                return Some(mem::replace(
-                    &mut self.children.get_mut(node_id.usize()).unwrap().value,
-                    value,
-                ));
+                return Some(mem::replace(&mut self.get_node_mut(node_id).value, value));
             }
             Ordering::Greater => {
                 let node = Node::new(key, value);
                 self.children.push(node);
                 let id = self.children.len() - 1;
-                let v = self.children.get_mut(node_id.usize());
-                v.unwrap().right = Some(NodeId(id as u32));
+                self.get_node_mut(node_id).right = Some(NodeId::from_usize(id));
                 return None;
             }
         }
@@ -122,7 +128,12 @@ impl<K: Ord, V> ArenaTree<K, V> {
 struct NodeId(u32);
 
 impl NodeId {
-    fn usize(&self) -> usize {
+    #[must_use]
+    fn from_usize(val: usize) -> Self {
+        NodeId(u32::try_from(val).expect("arena full: more than u32::MAX nodes"))
+    }
+    #[must_use]
+    fn usize(self) -> usize {
         self.0 as usize
     }
 }
